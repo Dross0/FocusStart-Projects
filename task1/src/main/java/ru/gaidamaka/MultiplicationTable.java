@@ -2,6 +2,8 @@ package ru.gaidamaka;
 
 import ru.gaidamaka.exceptions.WrongTableSizeException;
 
+import java.util.Formatter;
+
 public class MultiplicationTable {
     private final static int MAX_TABLE_SIZE = 32;
     private final static int MIN_TABLE_SIZE = 1;
@@ -23,8 +25,13 @@ public class MultiplicationTable {
     public void printTable(){
         final int fieldSize = WriterUtils.getSymbolsCountOfInteger(size * size);
         final int factorFieldSize = WriterUtils.getSymbolsCountOfInteger(size);
-        for (int factor = 1; factor <= size; ++factor){
-            printRow(factor, fieldSize, factorFieldSize);
+        for (int row = 0; row <= size; ++row){
+            if (row == 0){
+                printHeader(fieldSize, factorFieldSize);
+            }
+            else{
+                printRow(row, fieldSize, factorFieldSize);
+            }
             System.out.println();
             printRowsSeparator(fieldSize, factorFieldSize);
             System.out.println();
@@ -44,11 +51,22 @@ public class MultiplicationTable {
         }
     }
 
-    private void printRow(int factor, int fieldSize, int factorFieldSize) {
+
+    private void printRow(int factor, int fieldSize, int factorFieldSize){
+        Formatter formatter = new Formatter();
+        printRowWithFirstElement(factor, fieldSize, formatter.format("%" + factorFieldSize + "d|", factor).toString());
+    }
+
+    private void printHeader(int fieldSize, int factorFieldSize){
+        printRowWithFirstElement(1, fieldSize, WriterUtils.getStringWithNSameChar(' ', factorFieldSize) + "|");
+    }
+
+
+
+    private void printRowWithFirstElement(int factor, int fieldSize, String firstElement) {
         String format = "%" + fieldSize + "d|";
-        String firstElemFormat = "%" + factorFieldSize + "d|";
         String lastElemFormat = "%" + fieldSize + "d";
-        System.out.printf(firstElemFormat, factor);
+        System.out.print(firstElement);
         for (int i = 1; i < size; ++i){
             System.out.printf(format, factor * i);
         }
