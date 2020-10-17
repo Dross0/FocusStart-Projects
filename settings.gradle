@@ -1,2 +1,4 @@
 rootProject.name = 'CFTProject'
+include 'task1'
+include 'task2'
 
