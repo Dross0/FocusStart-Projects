@@ -11,12 +11,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class Main {
-    private final static Logger logger = Logger.getLogger(Main.class.getName());
+    private static final Logger logger = Logger.getLogger(Main.class.getName());
 
-    private final static String CONSOLE_MODE_ARG = "-c";
-    private final static String FILE_MODE_ARG = "-f";
+    private static final String CONSOLE_MODE_ARG = "-c";
+    private static final String FILE_MODE_ARG = "-f";
 
-    private final static String UNIT = "см";
+    private static final String UNIT = "см";
 
     public static void main(String[] args) {
         if (args.length < 2 || args.length > 3) {
@@ -44,21 +44,25 @@ public class Main {
                     break;
                 case FILE_MODE_ARG:
                     if (args.length != 3){
-                        logger.log(Level.SEVERE, "No filename");
+                        System.out.println("No file name at 3rd argument");
+                        logger.log(Level.SEVERE, "No file name at 3rd argument");
                         return;
                     }
                     shapeWriter = new ShapeWriter(Files.newOutputStream(Paths.get(args[2])));
                     break;
                 default:
+                    System.out.println("Wrong input mode arg = " + args[0]);
                     logger.log(Level.SEVERE, "Wrong input mode arg = " + args[0]);
                     return;
             }
             shapeWriter.writeShape(shape, UNIT);
         } catch (InvalidShapeInputFormat | InvalidShapeTypeName | InvalidShapeArgument |
                 ShapeFactoryUnsupportedType | ShapeFactoryParamsException | ShapeOutputException exception) {
+            System.out.println(exception.getMessage());
             logger.log(Level.SEVERE, exception.getMessage());
         }
         catch (IOException ex){
+            System.out.println("Cant open output file");
             logger.log(Level.SEVERE, "Cant open output file");
         }
     }

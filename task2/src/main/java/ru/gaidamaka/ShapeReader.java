@@ -15,31 +15,27 @@ public class ShapeReader {
     }
 
     /**
-     *
      * @return Пару = {Тип фигуры, вещественные агрументы}
      */
     Pair<String, ArrayList<Double>> readShape() throws InvalidShapeInputFormat {
         String shapeName;
-        if (scanner.hasNextLine()){
-            shapeName = scanner.nextLine();
-        }
-        else{
+        if (!scanner.hasNextLine()) {
             throw new InvalidShapeInputFormat("Cant read shape name");
         }
-        if (scanner.hasNextLine()){
-            String paramsLine = scanner.nextLine();
-            String[] paramsStr = paramsLine.split(" ");
-            ArrayList<Double> params = new ArrayList<>();
-            try{
-                for (String param: paramsStr){
-                    params.add(Double.parseDouble(param));
-                }
-            }
-            catch (NumberFormatException ex){
-                throw new InvalidShapeInputFormat("Cant convert one of params");
-            }
-            return new Pair<>(shapeName, params);
+        shapeName = scanner.nextLine();
+        if (!scanner.hasNextLine()) {
+            throw new InvalidShapeInputFormat("Cant read params");
         }
-        throw new InvalidShapeInputFormat("Cant read params");
+        String paramsLine = scanner.nextLine();
+        String[] paramsStr = paramsLine.split(" ");
+        ArrayList<Double> params = new ArrayList<>();
+        try {
+            for (String param : paramsStr) {
+                params.add(Double.parseDouble(param));
+            }
+        } catch (NumberFormatException ex) {
+            throw new InvalidShapeInputFormat("Cant convert one of params");
+        }
+        return new Pair<>(shapeName, params);
     }
 }

@@ -10,7 +10,9 @@ import ru.gaidamaka.squares.Triangle;
 
 import java.util.ArrayList;
 
-public class ShapeFactory {
+public final class ShapeFactory {
+    private ShapeFactory(){}
+
     public static Shape getSquare(ShapeType shapeType, ArrayList<Double> params) throws ShapeFactoryParamsException, InvalidShapeArgument, ShapeFactoryUnsupportedType {
         if (shapeType.getParamsNumber() != params.size()){
             throw new ShapeFactoryParamsException("Cant create " + shapeType + " because expected params number = "
