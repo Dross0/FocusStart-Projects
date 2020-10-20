@@ -27,7 +27,7 @@ public class MultiplicationTableWriter implements Closeable {
             printRowsSeparator(tableSize, fieldSize, firstColumnFieldSize);
             writer.println();
         }
-
+        writer.flush();
     }
 
     private void printRowsSeparator(int tableSize, int fieldSize, int firstColumnFieldSize) {
