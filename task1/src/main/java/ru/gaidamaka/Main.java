@@ -29,7 +29,8 @@ public class Main {
             logger.log(Level.SEVERE, "Getting table size failed");
             return;
         }
-        try (MultiplicationTableWriter tableWriter = new MultiplicationTableWriter(System.out)) {
+        try {
+            MultiplicationTableWriter tableWriter = new MultiplicationTableWriter(System.out);
             MultiplicationTable table = new MultiplicationTable(tableSize.get());
             tableWriter.writeTable(table);
         } catch (WrongTableSizeException e) {
