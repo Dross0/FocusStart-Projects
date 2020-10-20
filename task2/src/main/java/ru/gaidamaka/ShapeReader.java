@@ -3,11 +3,13 @@ package ru.gaidamaka;
 import javafx.util.Pair;
 import ru.gaidamaka.exceptions.InvalidShapeInputFormat;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class ShapeReader {
+public class ShapeReader implements Closeable {
     private final Scanner scanner;
 
     ShapeReader(InputStream inputStream) {
@@ -37,5 +39,10 @@ public class ShapeReader {
             throw new InvalidShapeInputFormat("Cant convert one of params");
         }
         return new Pair<>(shapeName, params);
+    }
+
+    @Override
+    public void close() {
+        scanner.close();
     }
 }

@@ -4,7 +4,7 @@ import ru.gaidamaka.exceptions.ShapeOutputException;
 
 import java.io.*;
 
-public class ShapeWriter {
+public class ShapeWriter implements Closeable {
     private final OutputStreamWriter outputStreamWriter;
 
     ShapeWriter(OutputStream stream) {
@@ -12,7 +12,7 @@ public class ShapeWriter {
     }
 
     public void writeShape(Shape shape, String unit) throws ShapeOutputException {
-        try (outputStreamWriter) {
+        try {
             outputStreamWriter.write(makeShapeInfoStr(shape, unit));
             outputStreamWriter.flush();
         }
@@ -46,5 +46,10 @@ public class ShapeWriter {
             default:
                 return null;
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        outputStreamWriter.close();
     }
 }

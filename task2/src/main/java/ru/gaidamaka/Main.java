@@ -20,19 +20,25 @@ public class Main {
 
     public static void main(String[] args) {
         if (args.length < 2 || args.length > 3) {
-            logger.log(Level.SEVERE, "Number args should be 2 or 3");
+            System.out.println("Number args should be 2 or 3");
+            logger.log(Level.SEVERE, "Wrong arguments number, actual = " + args.length +", expected = 2 or 3");
             return;
         }
-        ShapeReader shapeReader;
-        try {
-            shapeReader = new ShapeReader(Files.newInputStream(Paths.get(args[0])));
+
+        Pair<String, ArrayList<Double>> shapeInfo;
+        try (ShapeReader shapeReader = new ShapeReader(Files.newInputStream(Paths.get(args[0])))){
+            shapeInfo = shapeReader.readShape();
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "Cant open file = " + args[0]);
+            System.out.println();
+            logger.log(Level.SEVERE, "Cant open input file = {" + args[0] + "}");
+            return;
+        } catch (InvalidShapeInputFormat invalidShapeInputFormat) {
+            System.out.println("Input file contain shape with wrong format");
+            logger.log(Level.SEVERE, "Wrong shape input format");
             return;
         }
 
         try {
-            Pair<String, ArrayList<Double>> shapeInfo = shapeReader.readShape();
             Shape shape = ShapeFactory.getSquare(shapeInfo.getKey(), shapeInfo.getValue());
             ShapeWriter shapeWriter;
             switch (args[1]){
@@ -41,6 +47,7 @@ public class Main {
                         logger.log(Level.WARNING, "Output file will be ignored because console mode on");
                     }
                     shapeWriter = new ShapeWriter(System.out);
+                    shapeWriter.writeShape(shape, UNIT);
                     break;
                 case FILE_MODE_ARG:
                     if (args.length != 3){
@@ -49,14 +56,14 @@ public class Main {
                         return;
                     }
                     shapeWriter = new ShapeWriter(Files.newOutputStream(Paths.get(args[2])));
+                    shapeWriter.writeShape(shape, UNIT);
+                    shapeWriter.close();
                     break;
                 default:
                     System.out.println("Wrong input mode arg = " + args[0]);
                     logger.log(Level.SEVERE, "Wrong input mode arg = " + args[0]);
-                    return;
             }
-            shapeWriter.writeShape(shape, UNIT);
-        } catch (InvalidShapeInputFormat | InvalidShapeTypeName | InvalidShapeArgument |
+        } catch (InvalidShapeTypeName | InvalidShapeArgument |
                 ShapeFactoryUnsupportedType | ShapeFactoryParamsException | ShapeOutputException exception) {
             System.out.println(exception.getMessage());
             logger.log(Level.SEVERE, exception.getMessage());
