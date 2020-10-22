@@ -15,8 +15,8 @@ public class MultiplicationTableWriter implements Closeable {
 
     public void writeTable(MultiplicationTable table) {
         int tableSize = table.getSize();
-        final int fieldSize = StringUtils.getSymbolsCountOfInteger(tableSize * tableSize);
-        final int firstColumnFieldSize = StringUtils.getSymbolsCountOfInteger(tableSize);
+        final int fieldSize = Utils.getSymbolsCount(tableSize * tableSize);
+        final int firstColumnFieldSize = Utils.getSymbolsCount(tableSize);
         for (int row = 0; row <= tableSize; row++) {
             if (row == 0) {
                 printHeader(table, fieldSize, firstColumnFieldSize);
