@@ -18,15 +18,13 @@ public class Main {
             logger.log(Level.SEVERE, "Wrong number of arguments, expected: 1, actual: " + args.length);
             return;
         }
-        Optional<Integer> tableSize;
-        if (args[0].equals(USER_INPUT_MODE_ON_ARG)) {
-            tableSize = readTableSizeFromConsole();
-        } else {
-            tableSize = parseTableSize(args[0]);
-        }
+        Optional<Integer> tableSize = (args[0].equals(USER_INPUT_MODE_ON_ARG)) ?
+                readTableSizeFromConsole() :
+                parseTableSize(args[0]);
+
         if (tableSize.isEmpty()) {
-            System.out.println("Getting table size failed");
-            logger.log(Level.SEVERE, "Getting table size failed");
+            System.out.println("Table size cast to integer failure");
+            logger.log(Level.SEVERE, "Table size cast to integer failure");
             return;
         }
         try {
@@ -34,11 +32,12 @@ public class Main {
             MultiplicationTable table = new MultiplicationTable(tableSize.get());
             tableWriter.writeTable(table);
         } catch (WrongTableSizeException e) {
-            System.out.println("Size = " + tableSize.get() + " not from valid interval");
-            logger.log(Level.SEVERE, e.getMessage());
+            String errorMsg = "Size = " + tableSize.get() + " not from valid interval: ["
+                    + MultiplicationTable.MIN_TABLE_SIZE + ", " + MultiplicationTable.MAX_TABLE_SIZE + "]";
+            System.out.println(errorMsg);
+            logger.log(Level.SEVERE, errorMsg, e);
         }
     }
-
 
     private static Optional<Integer> parseTableSize(String tableSizeStr) {
         try {
