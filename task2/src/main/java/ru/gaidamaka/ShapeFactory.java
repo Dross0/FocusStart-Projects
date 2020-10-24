@@ -8,12 +8,12 @@ import ru.gaidamaka.squares.Circle;
 import ru.gaidamaka.squares.Rectangle;
 import ru.gaidamaka.squares.Triangle;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public final class ShapeFactory {
     private ShapeFactory(){}
 
-    public static Shape getSquare(ShapeType shapeType, ArrayList<Double> params) throws ShapeFactoryParamsException, InvalidShapeArgument, ShapeFactoryUnsupportedType {
+    public static Shape getSquare(ShapeType shapeType, List<Double> params) throws ShapeFactoryParamsException, InvalidShapeArgument, ShapeFactoryUnsupportedType {
         if (shapeType.getParamsNumber() != params.size()){
             throw new ShapeFactoryParamsException("Cant create " + shapeType + " because expected params number = "
                     + shapeType.getParamsNumber() + ", actual = " + params.size());
@@ -30,7 +30,7 @@ public final class ShapeFactory {
         }
     }
 
-    public static Shape getSquare(String shapeName, ArrayList<Double> params) throws InvalidShapeTypeName, ShapeFactoryUnsupportedType, ShapeFactoryParamsException, InvalidShapeArgument {
+    public static Shape getSquare(String shapeName, List<Double> params) throws InvalidShapeTypeName, ShapeFactoryUnsupportedType, ShapeFactoryParamsException, InvalidShapeArgument {
         try {
             ShapeType shapeType = ShapeType.valueOf(shapeName);
             return ShapeFactory.getSquare(shapeType, params);

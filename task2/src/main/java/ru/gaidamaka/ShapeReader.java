@@ -1,10 +1,8 @@
 package ru.gaidamaka;
 
-import javafx.util.Pair;
 import ru.gaidamaka.exceptions.InvalidShapeInputFormat;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -19,7 +17,7 @@ public class ShapeReader implements Closeable {
     /**
      * @return Пару = {Тип фигуры, вещественные агрументы}
      */
-    Pair<String, ArrayList<Double>> readShape() throws InvalidShapeInputFormat {
+    ShapeInfo readShape() throws InvalidShapeInputFormat {
         String shapeName;
         if (!scanner.hasNextLine()) {
             throw new InvalidShapeInputFormat("Cant read shape name");
@@ -38,7 +36,7 @@ public class ShapeReader implements Closeable {
         } catch (NumberFormatException ex) {
             throw new InvalidShapeInputFormat("Cant convert one of params");
         }
-        return new Pair<>(shapeName, params);
+        return new ShapeInfo(shapeName, params);
     }
 
     @Override

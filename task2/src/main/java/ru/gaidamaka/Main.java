@@ -1,12 +1,10 @@
 package ru.gaidamaka;
 
-import javafx.util.Pair;
 import ru.gaidamaka.exceptions.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,7 +23,7 @@ public class Main {
             return;
         }
 
-        Pair<String, ArrayList<Double>> shapeInfo;
+        ShapeInfo shapeInfo;
         try (ShapeReader shapeReader = new ShapeReader(Files.newInputStream(Paths.get(args[0])))){
             shapeInfo = shapeReader.readShape();
         } catch (IOException e) {
@@ -39,7 +37,7 @@ public class Main {
         }
 
         try {
-            Shape shape = ShapeFactory.getSquare(shapeInfo.getKey(), shapeInfo.getValue());
+            Shape shape = ShapeFactory.getSquare(shapeInfo.getName(), shapeInfo.getArgs());
             ShapeWriter shapeWriter;
             switch (args[1]){
                 case CONSOLE_MODE_ARG:
