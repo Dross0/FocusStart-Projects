@@ -1,6 +1,6 @@
 package ru.gaidamaka;
 
-import ru.gaidamaka.exceptions.InvalidShapeInputFormat;
+import ru.gaidamaka.exception.InvalidShapeInputFormatException;
 
 import java.io.Closeable;
 import java.io.InputStream;
@@ -15,28 +15,19 @@ public class ShapeReader implements Closeable {
     }
 
     /**
-     * @return Пару = {Тип фигуры, вещественные агрументы}
+     * @return Массив строк размера 2 = [имя фигуры, строка с параметрами фигуры]
      */
-    ShapeInfo readShape() throws InvalidShapeInputFormat {
+    String[] readShape() throws InvalidShapeInputFormatException {
         String shapeName;
         if (!scanner.hasNextLine()) {
-            throw new InvalidShapeInputFormat("Cant read shape name");
+            throw new InvalidShapeInputFormatException("Cant read shape name");
         }
         shapeName = scanner.nextLine();
         if (!scanner.hasNextLine()) {
-            throw new InvalidShapeInputFormat("Cant read params");
+            throw new InvalidShapeInputFormatException("Cant read params");
         }
         String paramsLine = scanner.nextLine();
-        String[] paramsStr = paramsLine.split(" ");
-        ArrayList<Double> params = new ArrayList<>();
-        try {
-            for (String param : paramsStr) {
-                params.add(Double.parseDouble(param));
-            }
-        } catch (NumberFormatException ex) {
-            throw new InvalidShapeInputFormat("Cant convert one of params");
-        }
-        return new ShapeInfo(shapeName, params);
+        return new String[]{shapeName, paramsLine};
     }
 
     @Override

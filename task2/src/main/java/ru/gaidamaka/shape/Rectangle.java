@@ -1,30 +1,30 @@
-package ru.gaidamaka.squares;
+package ru.gaidamaka.shape;
 
 
-import ru.gaidamaka.Shape;
 import ru.gaidamaka.ShapeCharacteristic;
 import ru.gaidamaka.ShapeType;
 import ru.gaidamaka.UnitType;
-import ru.gaidamaka.exceptions.InvalidShapeArgument;
+import ru.gaidamaka.exception.InvalidShapeArgumentException;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Rectangle implements Shape {
-    private final double a;
-    private final double b;
+    private final double firstSide;
+    private final double secondSide;
 
-    private ArrayList<ShapeCharacteristic> additionalInfo;
+    private List<ShapeCharacteristic> additionalInfo;
 
-    public Rectangle(double a, double b) throws InvalidShapeArgument {
-        if (!validateSideSizes(a, b)) {
-            throw new InvalidShapeArgument(ShapeType.RECTANGLE, "Side sizes must be finite and > 0");
-        }
-        this.a = a;
-        this.b = b;
+    public Rectangle(double firstSide, double secondSide) throws InvalidShapeArgumentException {
+        validateSideSizes(firstSide, secondSide);
+        this.firstSide = firstSide;
+        this.secondSide = secondSide;
     }
 
-    private boolean validateSideSizes(double a, double b){
-        return Double.isFinite(a) && Double.isFinite(b) && a > 0 && b > 0;
+    private void validateSideSizes(double a, double b) throws InvalidShapeArgumentException {
+        if (!Double.isFinite(a) || !Double.isFinite(b) || a <= 0 || b <= 0){
+            throw new InvalidShapeArgumentException(ShapeType.RECTANGLE, "Side sizes must be finite and > 0");
+        }
     }
 
     @Override
@@ -34,24 +34,24 @@ public class Rectangle implements Shape {
 
     @Override
     public double getSquare() {
-        return a * b;
+        return firstSide * secondSide;
     }
 
     @Override
     public double getPerimeter() {
-        return 2 * (a + b);
+        return 2 * (firstSide + secondSide);
     }
 
     public double getDiagonalSize(){
-        return Math.sqrt(a * a + b * b);
+        return Math.sqrt(firstSide * firstSide + secondSide * secondSide);
     }
 
-    public double getA() {
-        return a;
+    public double getFirstSide() {
+        return firstSide;
     }
 
-    public double getB() {
-        return b;
+    public double getSecondSide() {
+        return secondSide;
     }
 
     /**
@@ -59,7 +59,7 @@ public class Rectangle implements Shape {
      * @return Длину (размер наибольшей стороны)
      */
     public double getLength(){
-        return Math.max(a, b);
+        return Math.max(firstSide, secondSide);
     }
 
     /**
@@ -67,11 +67,11 @@ public class Rectangle implements Shape {
      * @return Ширину (размер наименьшей стороны)
      */
     public double getWidth(){
-        return Math.min(a, b);
+        return Math.min(firstSide, secondSide);
     }
 
     @Override
-    public ArrayList<ShapeCharacteristic> getAdditionalInfo() {
+    public List<ShapeCharacteristic> getAdditionalInfo() {
         if (additionalInfo == null){
             additionalInfo = new ArrayList<>();
             additionalInfo.add(new ShapeCharacteristic("Длина диагонали", getDiagonalSize(), UnitType.LENGTH));

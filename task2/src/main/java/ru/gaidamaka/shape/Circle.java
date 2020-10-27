@@ -1,28 +1,28 @@
-package ru.gaidamaka.squares;
+package ru.gaidamaka.shape;
 
 
-import ru.gaidamaka.Shape;
 import ru.gaidamaka.ShapeCharacteristic;
 import ru.gaidamaka.ShapeType;
 import ru.gaidamaka.UnitType;
-import ru.gaidamaka.exceptions.InvalidShapeArgument;
+import ru.gaidamaka.exception.InvalidShapeArgumentException;
 
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Circle implements Shape {
     private final double radius;
-    private ArrayList<ShapeCharacteristic> additionalInfo;
+    private List<ShapeCharacteristic> additionalInfo;
 
-    public Circle(double radius) throws InvalidShapeArgument {
-        if (!validateRadius(radius)) {
-            throw new InvalidShapeArgument(ShapeType.CIRCLE, "Radius must be finite and > 0");
-        }
+    public Circle(double radius) throws InvalidShapeArgumentException {
+        validateRadius(radius);
         this.radius = radius;
     }
 
-    private boolean validateRadius(double radius){
-        return Double.isFinite(radius) && radius > 0;
+    private void validateRadius(double radius) throws InvalidShapeArgumentException {
+        if (!Double.isFinite(radius) || radius <= 0){
+            throw new InvalidShapeArgumentException(ShapeType.CIRCLE, "Radius must be finite and > 0");
+        }
     }
 
     public double getRadius() {
@@ -50,7 +50,7 @@ public class Circle implements Shape {
 
 
     @Override
-    public ArrayList<ShapeCharacteristic> getAdditionalInfo() {
+    public List<ShapeCharacteristic> getAdditionalInfo() {
         if (additionalInfo == null){
             additionalInfo = new ArrayList<>();
             additionalInfo.add(new ShapeCharacteristic("Радиус", getRadius(), UnitType.LENGTH));

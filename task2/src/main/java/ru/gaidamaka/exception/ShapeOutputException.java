@@ -1,6 +1,6 @@
-package ru.gaidamaka.exceptions;
+package ru.gaidamaka.exception;
 
-public class ShapeOutputException extends Exception{
+public class ShapeOutputException extends ShapeException{
     public ShapeOutputException(String errorMessage){
         super(errorMessage);
     }

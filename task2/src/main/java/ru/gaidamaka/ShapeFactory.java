@@ -1,24 +1,22 @@
 package ru.gaidamaka;
 
-import ru.gaidamaka.exceptions.InvalidShapeArgument;
-import ru.gaidamaka.exceptions.InvalidShapeTypeName;
-import ru.gaidamaka.exceptions.ShapeFactoryParamsException;
-import ru.gaidamaka.exceptions.ShapeFactoryUnsupportedType;
-import ru.gaidamaka.squares.Circle;
-import ru.gaidamaka.squares.Rectangle;
-import ru.gaidamaka.squares.Triangle;
+import ru.gaidamaka.exception.*;
+import ru.gaidamaka.shape.Circle;
+import ru.gaidamaka.shape.Rectangle;
+import ru.gaidamaka.shape.Shape;
+import ru.gaidamaka.shape.Triangle;
 
 import java.util.List;
 
 public final class ShapeFactory {
-    private ShapeFactory(){}
+    private ShapeFactory() {}
 
-    public static Shape getSquare(ShapeType shapeType, List<Double> params) throws ShapeFactoryParamsException, InvalidShapeArgument, ShapeFactoryUnsupportedType {
-        if (shapeType.getParamsNumber() != params.size()){
+    public static Shape createShape(ShapeType shapeType, List<Double> params) throws ShapeException {
+        if (shapeType.getParamsNumber() != params.size()) {
             throw new ShapeFactoryParamsException("Cant create " + shapeType + " because expected params number = "
                     + shapeType.getParamsNumber() + ", actual = " + params.size());
         }
-        switch (shapeType){
+        switch (shapeType) {
             case CIRCLE:
                 return new Circle(params.get(0));
             case TRIANGLE:
@@ -26,17 +24,16 @@ public final class ShapeFactory {
             case RECTANGLE:
                 return new Rectangle(params.get(0), params.get(1));
             default:
-                throw new ShapeFactoryUnsupportedType("Type = " + shapeType + " now is unsupported");
+                throw new ShapeFactoryUnsupportedTypeException("Type = " + shapeType + " now is unsupported");
         }
     }
 
-    public static Shape getSquare(String shapeName, List<Double> params) throws InvalidShapeTypeName, ShapeFactoryUnsupportedType, ShapeFactoryParamsException, InvalidShapeArgument {
+    public static Shape createShape(String shapeName, List<Double> params) throws ShapeException {
         try {
             ShapeType shapeType = ShapeType.valueOf(shapeName);
-            return ShapeFactory.getSquare(shapeType, params);
-        }
-        catch (IllegalArgumentException | NullPointerException ex){
-            throw new InvalidShapeTypeName("Cant find {" + shapeName + "} shape type");
+            return createShape(shapeType, params);
+        } catch (IllegalArgumentException | NullPointerException ex) {
+            throw new InvalidShapeTypeNameException("Cant find {" + shapeName + "} shape type");
         }
     }
 

@@ -1,6 +1,6 @@
-package ru.gaidamaka.exceptions;
+package ru.gaidamaka.exception;
 
-public class ShapeFactoryParamsException extends Exception{
+public class ShapeFactoryParamsException extends ShapeException{
     public ShapeFactoryParamsException(String errorMessage){
         super(errorMessage);
     }

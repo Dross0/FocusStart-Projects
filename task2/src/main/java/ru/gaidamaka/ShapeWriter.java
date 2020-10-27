@@ -1,6 +1,7 @@
 package ru.gaidamaka;
 
-import ru.gaidamaka.exceptions.ShapeOutputException;
+import ru.gaidamaka.exception.ShapeOutputException;
+import ru.gaidamaka.shape.Shape;
 
 import java.io.*;
 
@@ -15,38 +16,27 @@ public class ShapeWriter implements Closeable {
         try {
             outputStreamWriter.write(makeShapeInfoStr(shape, unit));
             outputStreamWriter.flush();
-        }
-        catch (IOException ex){
+        } catch (IOException ex) {
             throw new ShapeOutputException("Problem with shape output");
         }
     }
 
-    private String makeShapeInfoStr(Shape shape, String unit){
-        String resultStr = "Тип фигуры: " + shape.getType().getShapeName() + "\n" +
-                "Площадь: " + shape.getSquare() + " " + getUnitRepr(UnitType.SQUARE, unit) + "\n" +
-                "Периметр: " + shape.getPerimeter() + " "+ unit + "\n";
+    private String makeShapeInfoStr(Shape shape, String unit) {
         StringBuilder stringBuilder = new StringBuilder();
-        for (ShapeCharacteristic shapeCharacteristic: shape.getAdditionalInfo()){
+        stringBuilder.append("Тип фигуры: ").append(shape.getType().getShapeName()).append(System.lineSeparator())
+                .append("Площадь: ").append(shape.getSquare()).append(" ")
+                .append(UnitType.SQUARE.makeUnitRepresentation(unit)).append(System.lineSeparator())
+                .append("Периметр: ").append(shape.getPerimeter()).append(" ").append(unit).append(System.lineSeparator());
+
+        for (ShapeCharacteristic shapeCharacteristic : shape.getAdditionalInfo()) {
             stringBuilder.append(shapeCharacteristic.getCharacteristicName())
                     .append(": ").append(shapeCharacteristic.getValue()).append(" ")
-                    .append(getUnitRepr(shapeCharacteristic.getUnitType(), unit)).append("\n");
+                    .append(shapeCharacteristic.getUnitType().makeUnitRepresentation(unit)).append(System.lineSeparator());
         }
-        return resultStr + stringBuilder.toString();
+        return stringBuilder.toString();
 
     }
 
-    private String getUnitRepr(UnitType type, String unit){
-        switch (type){
-            case ANGLE:
-                return "°";
-            case LENGTH:
-                return unit;
-            case SQUARE:
-                return "кв " + unit;
-            default:
-                return null;
-        }
-    }
 
     @Override
     public void close() throws IOException {
