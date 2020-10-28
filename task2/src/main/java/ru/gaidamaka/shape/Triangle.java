@@ -10,17 +10,17 @@ import java.util.List;
 
 
 public class Triangle implements Shape {
-    private final double firstSide;
-    private final double secondSide;
-    private final double thirdSide;
+    private final double sideA;
+    private final double sideB;
+    private final double sideC;
 
     private List<ShapeCharacteristic> additionalInfo;
 
-    public Triangle(double firstSide, double secondSide, double thirdSide) throws InvalidShapeArgumentException {
-        validateSideSizes(firstSide, secondSide, thirdSide);
-        this.firstSide = firstSide;
-        this.secondSide = secondSide;
-        this.thirdSide = thirdSide;
+    public Triangle(double sideA, double sideB, double sideC) throws InvalidShapeArgumentException {
+        validateSideSizes(sideA, sideB, sideC);
+        this.sideA = sideA;
+        this.sideB = sideB;
+        this.sideC = sideC;
     }
 
     private void validateSideSizes(double a, double b, double c) throws InvalidShapeArgumentException {
@@ -41,24 +41,24 @@ public class Triangle implements Shape {
     @Override
     public double getSquare() {
         double semiPerimeter = getPerimeter() / 2;
-        return Math.sqrt(semiPerimeter * (semiPerimeter - firstSide) * (semiPerimeter - secondSide) * (semiPerimeter - thirdSide));
+        return Math.sqrt(semiPerimeter * (semiPerimeter - sideA) * (semiPerimeter - sideB) * (semiPerimeter - sideC));
     }
 
     @Override
     public double getPerimeter() {
-        return firstSide + secondSide + thirdSide;
+        return sideA + sideB + sideC;
     }
 
-    public double getFirstSide() {
-        return firstSide;
+    public double getSideA() {
+        return sideA;
     }
 
-    public double getSecondSide() {
-        return secondSide;
+    public double getSideB() {
+        return sideB;
     }
 
-    public double getThirdSide() {
-        return thirdSide;
+    public double getSideC() {
+        return sideC;
     }
 
     private double getOppositeAngle(double side1, double side2, double oppositeSide) {
@@ -67,28 +67,28 @@ public class Triangle implements Shape {
         return Math.acos(numerator / denominator) * 180 / Math.PI;
     }
 
-    public double getFirstSideOppositeAngle() {
-        return getOppositeAngle(secondSide, thirdSide, firstSide);
+    public double getSideAOppositeAngle() {
+        return getOppositeAngle(sideB, sideC, sideA);
     }
 
-    public double getSecondSideOppositeAngle() {
-        return getOppositeAngle(firstSide, thirdSide, secondSide);
+    public double getSideBOppositeAngle() {
+        return getOppositeAngle(sideA, sideC, sideB);
     }
 
-    public double getThirdSideOppositeAngle() {
-        return getOppositeAngle(firstSide, secondSide, thirdSide);
+    public double getSideCOppositeAngle() {
+        return getOppositeAngle(sideA, sideB, sideC);
     }
 
     @Override
     public List<ShapeCharacteristic> getAdditionalInfo() {
         if (additionalInfo == null) {
             additionalInfo = new ArrayList<>();
-            additionalInfo.add(new ShapeCharacteristic("Длина стороны A", firstSide, UnitType.LENGTH));
-            additionalInfo.add(new ShapeCharacteristic("Длина стороны B", secondSide, UnitType.LENGTH));
-            additionalInfo.add(new ShapeCharacteristic("Длина стороны C", thirdSide, UnitType.LENGTH));
-            additionalInfo.add(new ShapeCharacteristic("Угол противолежащий стороне A", getFirstSideOppositeAngle(), UnitType.ANGLE));
-            additionalInfo.add(new ShapeCharacteristic("Угол противолежащий стороне B", getSecondSideOppositeAngle(), UnitType.ANGLE));
-            additionalInfo.add(new ShapeCharacteristic("Угол противолежащий стороне C", getThirdSideOppositeAngle(), UnitType.ANGLE));
+            additionalInfo.add(new ShapeCharacteristic("Длина стороны A", sideA, UnitType.LENGTH));
+            additionalInfo.add(new ShapeCharacteristic("Длина стороны B", sideB, UnitType.LENGTH));
+            additionalInfo.add(new ShapeCharacteristic("Длина стороны C", sideC, UnitType.LENGTH));
+            additionalInfo.add(new ShapeCharacteristic("Угол противолежащий стороне A", getSideAOppositeAngle(), UnitType.ANGLE));
+            additionalInfo.add(new ShapeCharacteristic("Угол противолежащий стороне B", getSideBOppositeAngle(), UnitType.ANGLE));
+            additionalInfo.add(new ShapeCharacteristic("Угол противолежащий стороне C", getSideCOppositeAngle(), UnitType.ANGLE));
         }
         return additionalInfo;
     }

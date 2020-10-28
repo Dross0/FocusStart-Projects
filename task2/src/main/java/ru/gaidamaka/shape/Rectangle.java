@@ -10,15 +10,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Rectangle implements Shape {
-    private final double firstSide;
-    private final double secondSide;
+    private final double sideA;
+    private final double sideB;
 
     private List<ShapeCharacteristic> additionalInfo;
 
-    public Rectangle(double firstSide, double secondSide) throws InvalidShapeArgumentException {
-        validateSideSizes(firstSide, secondSide);
-        this.firstSide = firstSide;
-        this.secondSide = secondSide;
+    public Rectangle(double sideA, double sideB) throws InvalidShapeArgumentException {
+        validateSideSizes(sideA, sideB);
+        this.sideA = sideA;
+        this.sideB = sideB;
     }
 
     private void validateSideSizes(double a, double b) throws InvalidShapeArgumentException {
@@ -34,24 +34,24 @@ public class Rectangle implements Shape {
 
     @Override
     public double getSquare() {
-        return firstSide * secondSide;
+        return sideA * sideB;
     }
 
     @Override
     public double getPerimeter() {
-        return 2 * (firstSide + secondSide);
+        return 2 * (sideA + sideB);
     }
 
     public double getDiagonalSize(){
-        return Math.sqrt(firstSide * firstSide + secondSide * secondSide);
+        return Math.sqrt(sideA * sideA + sideB * sideB);
     }
 
-    public double getFirstSide() {
-        return firstSide;
+    public double getSideA() {
+        return sideA;
     }
 
-    public double getSecondSide() {
-        return secondSide;
+    public double getSideB() {
+        return sideB;
     }
 
     /**
@@ -59,7 +59,7 @@ public class Rectangle implements Shape {
      * @return Длину (размер наибольшей стороны)
      */
     public double getLength(){
-        return Math.max(firstSide, secondSide);
+        return Math.max(sideA, sideB);
     }
 
     /**
@@ -67,7 +67,7 @@ public class Rectangle implements Shape {
      * @return Ширину (размер наименьшей стороны)
      */
     public double getWidth(){
-        return Math.min(firstSide, secondSide);
+        return Math.min(sideA, sideB);
     }
 
     @Override

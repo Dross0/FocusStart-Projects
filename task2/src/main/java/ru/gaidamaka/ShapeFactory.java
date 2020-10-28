@@ -13,7 +13,7 @@ public final class ShapeFactory {
 
     public static Shape createShape(ShapeType shapeType, List<Double> params) throws ShapeException {
         if (shapeType.getParamsNumber() != params.size()) {
-            throw new ShapeFactoryParamsException("Cant create " + shapeType + " because expected params number = "
+            throw new ShapeFactoryException("Cant create " + shapeType + " because expected params number = "
                     + shapeType.getParamsNumber() + ", actual = " + params.size());
         }
         switch (shapeType) {
@@ -24,7 +24,7 @@ public final class ShapeFactory {
             case RECTANGLE:
                 return new Rectangle(params.get(0), params.get(1));
             default:
-                throw new ShapeFactoryUnsupportedTypeException("Type = " + shapeType + " now is unsupported");
+                throw new ShapeFactoryException("Type = " + shapeType + " now is unsupported");
         }
     }
 
@@ -32,8 +32,8 @@ public final class ShapeFactory {
         try {
             ShapeType shapeType = ShapeType.valueOf(shapeName);
             return createShape(shapeType, params);
-        } catch (IllegalArgumentException | NullPointerException ex) {
-            throw new InvalidShapeTypeNameException("Cant find {" + shapeName + "} shape type");
+        } catch (IllegalArgumentException ex) {
+            throw new ShapeFactoryException("Cant find {" + shapeName + "} shape type");
         }
     }
 

@@ -23,15 +23,27 @@ public class ShapeWriter implements Closeable {
 
     private String makeShapeInfoStr(Shape shape, String unit) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Тип фигуры: ").append(shape.getType().getShapeName()).append(System.lineSeparator())
-                .append("Площадь: ").append(shape.getSquare()).append(" ")
-                .append(UnitType.SQUARE.makeUnitRepresentation(unit)).append(System.lineSeparator())
-                .append("Периметр: ").append(shape.getPerimeter()).append(" ").append(unit).append(System.lineSeparator());
+        stringBuilder.append("Тип фигуры: ")
+                .append(shape.getType().getShapeName())
+                .append(System.lineSeparator())
+                .append("Площадь: ")
+                .append(shape.getSquare())
+                .append(" ")
+                .append(UnitType.SQUARE.makeUnitRepresentation(unit))
+                .append(System.lineSeparator())
+                .append("Периметр: ")
+                .append(shape.getPerimeter())
+                .append(" ")
+                .append(unit)
+                .append(System.lineSeparator());
 
         for (ShapeCharacteristic shapeCharacteristic : shape.getAdditionalInfo()) {
             stringBuilder.append(shapeCharacteristic.getCharacteristicName())
-                    .append(": ").append(shapeCharacteristic.getValue()).append(" ")
-                    .append(shapeCharacteristic.getUnitType().makeUnitRepresentation(unit)).append(System.lineSeparator());
+                    .append(": ")
+                    .append(shapeCharacteristic.getValue())
+                    .append(" ")
+                    .append(shapeCharacteristic.getUnitType().makeUnitRepresentation(unit))
+                    .append(System.lineSeparator());
         }
         return stringBuilder.toString();
 

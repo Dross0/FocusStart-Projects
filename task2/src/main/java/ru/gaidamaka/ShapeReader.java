@@ -5,6 +5,7 @@ import ru.gaidamaka.exception.InvalidShapeInputFormatException;
 import java.io.Closeable;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class ShapeReader implements Closeable {
@@ -17,7 +18,7 @@ public class ShapeReader implements Closeable {
     /**
      * @return Массив строк размера 2 = [имя фигуры, строка с параметрами фигуры]
      */
-    String[] readShape() throws InvalidShapeInputFormatException {
+    List<String> readShapeParameters() throws InvalidShapeInputFormatException {
         String shapeName;
         if (!scanner.hasNextLine()) {
             throw new InvalidShapeInputFormatException("Cant read shape name");
@@ -27,7 +28,11 @@ public class ShapeReader implements Closeable {
             throw new InvalidShapeInputFormatException("Cant read params");
         }
         String paramsLine = scanner.nextLine();
-        return new String[]{shapeName, paramsLine};
+
+        List<String> shapeParams = new ArrayList<>();
+        shapeParams.add(shapeName);
+        shapeParams.add(paramsLine);
+        return shapeParams;
     }
 
     @Override
