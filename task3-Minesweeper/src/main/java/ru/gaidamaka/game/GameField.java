@@ -1,5 +1,6 @@
 package ru.gaidamaka.game;
 
+import org.jetbrains.annotations.NotNull;
 import ru.gaidamaka.exception.GameFieldException;
 
 import java.util.*;
@@ -8,7 +9,7 @@ public class GameField {
     private static final int MAX_FIELD_WIDTH = 32;
     private static final int MAX_FIELD_HEIGHT = 32;
 
-    private final Cell[][] field;
+    private final List<Cell> field;
     private final int width;
     private final int height;
     private final List<Cell> bombs;
@@ -17,7 +18,7 @@ public class GameField {
         validateFieldParams(width, height, bombsNumber);
         this.width = width;
         this.height = height;
-        field = new Cell[height][width];
+        field = new ArrayList<>(width * height);
         fillField();
         bombs = new ArrayList<>(bombsNumber);
         generateBombs(bombsNumber);
@@ -28,11 +29,19 @@ public class GameField {
         return bombs.size() - countMarkedCells();
     }
 
+    public int getHeight() {
+        return height;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
     private int countMarkedCells(){
         int markedCellsNumber = 0;
         for (int row = 0; row < height; row++) {
             for (int col = 0; col < width; col++) {
-                if (field[row][col].isMarked()){
+                if (getCell(col, row).isMarked()){
                     markedCellsNumber++;
                 }
             }
@@ -40,11 +49,13 @@ public class GameField {
         return markedCellsNumber;
     }
 
+    @NotNull
     public Cell getCell(int x, int y){
         validateCoordinates(x, y);
-        return field[y][x];
+        return field.get(y * width + x);
     }
 
+    @NotNull
     public List<Cell> getNearCells(int x, int y){
         List<Cell> nearCells = new ArrayList<>();
         for (int i = -1; i < 2; i++) {
@@ -54,7 +65,7 @@ public class GameField {
                 }
                 try {
                     validateCoordinates(x + i, y + j);
-                    nearCells.add(field[y + j][x + i]);
+                    nearCells.add(getCell(x + i, y + j));
                 } catch (GameFieldException ignored){}
             }
         }
@@ -62,12 +73,7 @@ public class GameField {
     }
 
     private void countNearBombsForAllCells() {
-        for (int row = 0; row < height; row++) {
-            for (int col = 0; col < width; col++) {
-                Cell cell = field[row][col];
-                cell.setNearBombNumber(countCellNearBombs(cell));
-            }
-        }
+        field.forEach(cell -> cell.setNearBombNumber(countCellNearBombs(cell)));
     }
 
     private void validateCoordinates(int x, int y){
@@ -78,7 +84,8 @@ public class GameField {
         }
     }
 
-    private int countCellNearBombs(Cell cell){
+    private int countCellNearBombs(@NotNull Cell cell){
+        Objects.requireNonNull(cell, "Cell cant be null");
         int nearBombsCount = 0;
         int cellX = cell.getX();
         int cellY = cell.getY();
@@ -86,7 +93,7 @@ public class GameField {
             for (int j = -1; j < 2; j++) {
                 try {
                     validateCoordinates(cellX + i, cellY + j);
-                    nearBombsCount += (field[cellY + j][cellX + i].getType() == CellType.BOMB) ? 1 : 0;
+                    nearBombsCount += (getCell(cellX + i, cellY + j).getType() == CellType.BOMB) ? 1 : 0;
                 } catch (GameFieldException ignored){}
             }
         }
@@ -97,7 +104,7 @@ public class GameField {
         Random random = new Random();
         int bombCount = 0;
         while (bombCount < bombsNumber){
-            Cell randomCell = field[random.nextInt(height)][random.nextInt(width)];
+            Cell randomCell = getCell(random.nextInt(width), random.nextInt(height));
             if (!bombs.contains(randomCell)){
                 randomCell.setCellType(CellType.BOMB);
                 bombs.add(randomCell);
@@ -107,9 +114,9 @@ public class GameField {
     }
 
     private void fillField(){
-        for (int row = 0; row < field.length; row++) {
-            for (int col = 0; col < field[row].length; col++) {
-                field[row][col] = new Cell(col, row);
+        for (int row = 0; row < height; row++) {
+            for (int col = 0; col < width; col++) {
+                field.add(new Cell(col, row));
             }
         }
     }

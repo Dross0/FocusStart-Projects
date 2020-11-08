@@ -1,5 +1,7 @@
 package ru.gaidamaka.game;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Objects;
 
 public class Cell {
@@ -10,10 +12,10 @@ public class Cell {
     private boolean isMarkedFlag;
     private int nearBombNumber;
 
-    public Cell(int x, int y, CellType cellType) {
+    public Cell(int x, int y, @NotNull CellType cellType) {
+        this.cellType = Objects.requireNonNull(cellType, "Cell type cant be null");
         this.x = x;
         this.y = y;
-        this.cellType = cellType;
         this.isHiddenFlag = true;
         this.isMarkedFlag = false;
         this.nearBombNumber = 0;
@@ -23,7 +25,17 @@ public class Cell {
         this(x, y, CellType.EMPTY);
     }
 
+    public Cell(@NotNull Cell cell){
+        this(cell.x, cell.y, cell.cellType);
+        this.isHiddenFlag = cell.isHiddenFlag;
+        this.isMarkedFlag = cell.isMarkedFlag;
+        this.nearBombNumber = cell.nearBombNumber;
+    }
+
     public void setNearBombNumber(int nearBombNumber){
+        if (cellType == CellType.BOMB){
+            return;
+        }
         setCellType((nearBombNumber > 0) ? CellType.NEAR_BOMB : CellType.EMPTY);
         this.nearBombNumber = nearBombNumber;
     }
@@ -65,6 +77,7 @@ public class Cell {
         return y;
     }
 
+    @NotNull
     public CellType getType() {
         return cellType;
     }

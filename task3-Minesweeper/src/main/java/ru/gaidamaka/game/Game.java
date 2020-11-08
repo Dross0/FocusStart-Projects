@@ -1,39 +1,52 @@
 package ru.gaidamaka.game;
 
+import org.jetbrains.annotations.NotNull;
+import ru.gaidamaka.GameObservable;
+import ru.gaidamaka.GameObserver;
+import ru.gaidamaka.game.event.GameEvent;
+import ru.gaidamaka.game.event.GameEventType;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public class Game implements Runnable{
+public class Game implements Runnable, GameObservable {
     private static final int DEFAULT_FIELD_WIDTH = 9;
     private static final int DEFAULT_FIELD_HEIGHT = 9;
     private static final int DEFAULT_BOMBS_NUMBER = 10;
 
-    private final GameField gameField;
+    private GameField gameField;
 
     private final List<Cell> updatedCells;
+    private final List<GameObserver> observers;
     private GameStatus gameStatus;
-    private final int bombsNumber;
+    private int bombsNumber;
     private int marksNumber;
+    private int score;
+
 
     public Game(int width, int height, int bombsNumber){
-        gameField = new GameField(width, height, bombsNumber);
-        this.bombsNumber = bombsNumber;
-        marksNumber = 0;
         updatedCells = new ArrayList<>();
-        gameStatus = GameStatus.STOPPED;
+        observers = new ArrayList<>();
+        reset(width, height, bombsNumber);
     }
 
     public Game(){
         this(DEFAULT_FIELD_WIDTH, DEFAULT_FIELD_HEIGHT, DEFAULT_BOMBS_NUMBER);
     }
 
-    public List<Cell> getUpdatedCells() {
-        return updatedCells;
+    public void reset(int width, int height, int bombsNumber){
+        gameField = new GameField(width, height, bombsNumber);
+        this.bombsNumber = bombsNumber;
+        marksNumber = 0;
+        score = 0;
+        updatedCells.clear();
+        gameStatus = GameStatus.STOPPED;
     }
 
-    public void showCell(int x, int y){
+    private void showCellWithoutNotify(int x, int y){
         Cell cell = gameField.getCell(x, y);
-        if (!cell.isHidden()){
+        if (!cell.isHidden() || cell.isMarked()){
             return;
         }
         cell.show();
@@ -44,14 +57,50 @@ public class Game implements Runnable{
                 break;
             case EMPTY:
                 List<Cell> nearCells = gameField.getNearCells(x, y);
-                for (Cell nearCell: nearCells){
-                    showCell(nearCell.getX(), nearCell.getY());
-                }
+                nearCells.forEach(nearCell -> showCellWithoutNotify(nearCell.getX(), nearCell.getY()));
                 break;
         }
     }
 
+    public void setCurrentScore(int score){
+        this.score = score;
+    }
+
+    public void showCell(int x, int y){
+        if (gameStatus != GameStatus.PLAYING){
+            return;
+        }
+        showCellWithoutNotify(x, y);
+        notifyObservers(createGameEvent(GameEventType.MOVE));
+    }
+
+    public void showNeighborsOfOpenCell(int x, int y){
+        Cell cell = gameField.getCell(x, y);
+        if (gameStatus != GameStatus.PLAYING || cell.isHidden()){
+            return;
+        }
+        List<Cell> nearCells = gameField.getNearCells(x, y);
+        int nearFlagsNumber = 0;
+        for (Cell nearCell: nearCells){
+            if (nearCell.isMarked()){
+                nearFlagsNumber++;
+            }
+        }
+        if (nearFlagsNumber != cell.getNearBombNumber()){
+            return;
+        }
+        nearCells.forEach(nearCell -> showCellWithoutNotify(nearCell.getX(), nearCell.getY()));
+        notifyObservers(createGameEvent(GameEventType.MOVE));
+    }
+
+    public int getCurrentBombsNumberWithoutMarkedCells(){
+        return gameField.getCurrentBombsNumberWithoutMarkedCells();
+    }
+
     public void toggleMarkCell(int x, int y){
+        if (gameStatus != GameStatus.PLAYING){
+            return;
+        }
         Cell cell = gameField.getCell(x, y);
         if (cell.isMarked()){
             cell.unmark();
@@ -59,15 +108,15 @@ public class Game implements Runnable{
             updatedCells.add(cell);
         }
         else{
-            markCell(x, y);
+            markCell(cell);
         }
+        notifyObservers(createGameEvent(GameEventType.MOVE));
     }
 
-    public void markCell(int x, int y){
-        if (marksNumber + 1 > bombsNumber){
+    private void markCell(Cell cell){
+        if (!cell.isHidden()){  //marksNumber + 1 > bombsNumber - для ограничения количества флагов
             return;
         }
-        Cell cell = gameField.getCell(x, y);
         cell.mark();
         marksNumber++;
         updatedCells.add(cell);
@@ -76,13 +125,47 @@ public class Game implements Runnable{
     @Override
     public void run() {
         gameStatus = GameStatus.PLAYING;
+        for (int row = 0; row < gameField.getHeight(); row++) {
+            for (int col = 0; col < gameField.getWidth(); col++) {
+                updatedCells.add(gameField.getCell(col, row));
+            }
+
+        }
+        notifyObservers(createGameEvent(GameEventType.START_GAME));
     }
 
     private void lose(){
         gameStatus = GameStatus.LOSE;
+        notifyObservers(createGameEvent(GameEventType.FINISH_GAME));
     }
 
     private void win(){
         gameStatus = GameStatus.WIN;
+        notifyObservers(createGameEvent(GameEventType.FINISH_GAME));
+    }
+
+    @Override
+    public void addObserver(@NotNull GameObserver gameObserver) {
+        Objects.requireNonNull(gameObserver, "Game observer cant be null");
+        observers.add(gameObserver);
+    }
+
+    @Override
+    public void removeObserver(@NotNull GameObserver gameObserver) {
+        Objects.requireNonNull(gameObserver, "Game observer cant be null");
+        observers.add(gameObserver);
+    }
+
+    private GameEvent createGameEvent(GameEventType eventType) {
+        final List<Cell> updatedCellsCopy = new ArrayList<>();
+        updatedCells.forEach(cell -> updatedCellsCopy.add(new Cell(cell)));
+        updatedCells.clear();
+        return new GameEvent(updatedCellsCopy, gameStatus, score,eventType);
+    }
+
+    @Override
+    public void notifyObservers(@NotNull GameEvent event) {
+        Objects.requireNonNull(event, "Event cant be null");
+        observers.forEach(observer -> observer.update(event));
     }
 }

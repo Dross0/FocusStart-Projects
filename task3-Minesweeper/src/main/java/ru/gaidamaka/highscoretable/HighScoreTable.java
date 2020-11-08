@@ -1,27 +1,36 @@
-package ru.gaidamaka;
+package ru.gaidamaka.highscoretable;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.*;
 
 
 public class HighScoreTable implements Serializable, Iterable<PlayerRecord> {
-    private final List<PlayerRecord> recordList;
-    private PlayerRecord minRecord;
+    private final List<PlayerRecord> recordList; // The highest records are from the beginning of the list
     private final int capacity;
+    private final HighScoreOrder tableOrder;
 
-    public HighScoreTable(int capacity) {
+    @Nullable
+    private PlayerRecord lowestRecord;
+
+    public HighScoreTable(int capacity, @NotNull HighScoreOrder tableOrder) {
         if (capacity <= 0) {
             throw new IllegalArgumentException("High score table size must be > 0");
         }
+        this.tableOrder = Objects.requireNonNull(tableOrder, "Table order cant be null");
         this.capacity = capacity;
         recordList = new ArrayList<>(capacity);
     }
 
     public boolean isHighScore(int score) {
-        if (minRecord == null || recordList.size() < capacity) {
+        if (lowestRecord == null || recordList.size() < capacity) {
             return true;
         }
-        return score > minRecord.getScore();
+        PlayerRecord tmpRecord = new PlayerRecord("", score);
+        PlayerRecord higherScoreRecord = tableOrder.getHigherScoreRecord(tmpRecord, lowestRecord);
+        return tmpRecord.equals(higherScoreRecord);
     }
 
     public boolean containsPlayer(String playerName) {
@@ -43,29 +52,34 @@ public class HighScoreTable implements Serializable, Iterable<PlayerRecord> {
     }
 
     private void updateRecord(PlayerRecord prevRecord, PlayerRecord newRecord) {
-        if (newRecord.getScore() > prevRecord.getScore()) {
+        PlayerRecord higherScoreRecord = tableOrder.getHigherScoreRecord(newRecord, prevRecord);
+        if (newRecord.equals(higherScoreRecord)) {
             recordList.remove(prevRecord);
             recordList.add(newRecord);
         }
     }
 
-    public void addNewRecord(PlayerRecord record) {
+    public void addNewRecord(@NotNull PlayerRecord record) {
+        Objects.requireNonNull(record, "Record cant be a null");
         if (!isHighScore(record.getScore())) {
             return;
         }
         Optional<PlayerRecord> thisPrevPlayerRecord = getPlayerRecord(record.getPlayerName());
-        if (thisPrevPlayerRecord.isEmpty() && minRecord != null && recordList.size() >= capacity) {
-            recordList.remove(minRecord);
+        if (thisPrevPlayerRecord.isEmpty() && lowestRecord != null && recordList.size() >= capacity) {
+            recordList.remove(lowestRecord);
         }
         thisPrevPlayerRecord.ifPresentOrElse(
                 (prevRecord) -> updateRecord(prevRecord, record),
                 () -> recordList.add(record)
         );
-        recordList.sort(Comparator.comparingInt(PlayerRecord::getScore));
-        minRecord = recordList.get(0);
+        recordList.sort((o1, o2) -> tableOrder == HighScoreOrder.MIN
+                ? o1.compareTo(o2)
+                : -o1.compareTo(o2));
+        lowestRecord = recordList.get(recordList.size() - 1);
     }
 
     @Override
+    @NotNull
     public Iterator<PlayerRecord> iterator() {
         return recordList.iterator();
     }
