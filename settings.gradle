@@ -1,4 +1,5 @@
 rootProject.name = 'CFTProject'
 include 'task1'
 include 'task2'
+include 'task4-MultithreadComputing'
 
