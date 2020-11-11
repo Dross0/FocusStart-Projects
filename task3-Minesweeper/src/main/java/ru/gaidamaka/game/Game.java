@@ -3,6 +3,7 @@ package ru.gaidamaka.game;
 import org.jetbrains.annotations.NotNull;
 import ru.gaidamaka.GameObservable;
 import ru.gaidamaka.GameObserver;
+import ru.gaidamaka.game.cell.Cell;
 import ru.gaidamaka.game.event.GameEvent;
 import ru.gaidamaka.game.event.GameEventType;
 
@@ -20,6 +21,7 @@ public class Game implements Runnable, GameObservable {
     private final List<Cell> updatedCells;
     private final List<GameObserver> observers;
     private GameStatus gameStatus;
+    private int closedCellsNumber;
     private int bombsNumber;
     private int marksNumber;
     private int score;
@@ -40,6 +42,7 @@ public class Game implements Runnable, GameObservable {
         this.bombsNumber = bombsNumber;
         marksNumber = 0;
         score = 0;
+        closedCellsNumber = width * height;
         updatedCells.clear();
         gameStatus = GameStatus.STOPPED;
     }
@@ -50,6 +53,7 @@ public class Game implements Runnable, GameObservable {
             return;
         }
         cell.show();
+        closedCellsNumber--;
         updatedCells.add(cell);
         switch (cell.getType()){
             case BOMB:
@@ -72,6 +76,7 @@ public class Game implements Runnable, GameObservable {
         }
         showCellWithoutNotify(x, y);
         notifyObservers(createGameEvent(GameEventType.MOVE));
+        checkWin();
     }
 
     public void showNeighborsOfOpenCell(int x, int y){
@@ -91,6 +96,7 @@ public class Game implements Runnable, GameObservable {
         }
         nearCells.forEach(nearCell -> showCellWithoutNotify(nearCell.getX(), nearCell.getY()));
         notifyObservers(createGameEvent(GameEventType.MOVE));
+        checkWin();
     }
 
     public int getCurrentBombsNumberWithoutMarkedCells(){
@@ -134,12 +140,18 @@ public class Game implements Runnable, GameObservable {
         notifyObservers(createGameEvent(GameEventType.START_GAME));
     }
 
-    private void lose(){
+    private void lose() {
         gameStatus = GameStatus.LOSE;
         notifyObservers(createGameEvent(GameEventType.FINISH_GAME));
     }
 
-    private void win(){
+    private void checkWin() {
+        if (gameStatus == GameStatus.PLAYING && closedCellsNumber == bombsNumber) {
+            win();
+        }
+    }
+
+    private void win() {
         gameStatus = GameStatus.WIN;
         notifyObservers(createGameEvent(GameEventType.FINISH_GAME));
     }
@@ -160,12 +172,16 @@ public class Game implements Runnable, GameObservable {
         final List<Cell> updatedCellsCopy = new ArrayList<>();
         updatedCells.forEach(cell -> updatedCellsCopy.add(new Cell(cell)));
         updatedCells.clear();
-        return new GameEvent(updatedCellsCopy, gameStatus, score,eventType);
+        return new GameEvent(updatedCellsCopy, gameStatus, score, eventType);
     }
 
     @Override
     public void notifyObservers(@NotNull GameEvent event) {
         Objects.requireNonNull(event, "Event cant be null");
         observers.forEach(observer -> observer.update(event));
+    }
+
+    public void exit() {
+        gameStatus = GameStatus.STOPPED;
     }
 }

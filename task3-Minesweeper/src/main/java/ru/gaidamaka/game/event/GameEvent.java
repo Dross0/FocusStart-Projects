@@ -1,8 +1,8 @@
 package ru.gaidamaka.game.event;
 
 import org.jetbrains.annotations.NotNull;
-import ru.gaidamaka.game.Cell;
 import ru.gaidamaka.game.GameStatus;
+import ru.gaidamaka.game.cell.Cell;
 
 import java.util.List;
 import java.util.Objects;

@@ -40,6 +40,9 @@ public class MinesweeperPresenter implements Presenter {
     public void onEvent(@NotNull UserEvent event) {
         Objects.requireNonNull(event, "User event cant be null");
         switch (event.getType()){
+            case EXIT_GAME:
+                game.exit();
+                break;
             case FLAG_SET:
                 game.toggleMarkCell(event.getX(), event.getY());
                 view.updateScoreBoard(secondsAfterStartGame, game.getCurrentBombsNumberWithoutMarkedCells());
@@ -51,20 +54,11 @@ public class MinesweeperPresenter implements Presenter {
                 game.showNeighborsOfOpenCell(event.getX(), event.getY());
                 break;
             case NEW_GAME:
-                game.reset(10, 10, 10); //FIXME
+                game.reset(10, 10, 1); //FIXME
                 runGame();
                 break;
             case SHOW_HIGH_SCORE_TABLE:
-                String name = view.readPlayerName();
-                System.out.println("Name = " + name);
-                HighScoreTable table = highScoreTableManager.getOrCreateTable();
-                table.addNewRecord(new PlayerRecord("Ali", 100));
-                table.addNewRecord(new PlayerRecord("Kris", 300));
-                table.addNewRecord(new PlayerRecord("Dross", 400));
-                table.addNewRecord(new PlayerRecord("Andrew", 160));
-                table.addNewRecord(new PlayerRecord("Hel", 200));
-
-                //view.showHighScoreTable(table);
+                view.showHighScoreTable(highScoreTableManager.getOrCreateTable());
                 break;
         }
     }
@@ -82,7 +76,6 @@ public class MinesweeperPresenter implements Presenter {
                     highScoreTableManager
                             .getOrCreateTable()
                             .addNewRecord(new PlayerRecord(playerName, gameEvent.getScore()));
-
                 }
                 view.showWinScreen();
                 try {

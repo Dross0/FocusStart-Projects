@@ -1,10 +1,10 @@
 package ru.gaidamaka.ui;
 
 import org.jetbrains.annotations.NotNull;
-import ru.gaidamaka.*;
 import ru.gaidamaka.UserEvent;
-import ru.gaidamaka.game.Cell;
-import ru.gaidamaka.game.CellType;
+import ru.gaidamaka.UserEventType;
+import ru.gaidamaka.game.cell.Cell;
+import ru.gaidamaka.game.cell.CellType;
 import ru.gaidamaka.highscoretable.HighScoreTable;
 import ru.gaidamaka.presenter.Presenter;
 import ru.gaidamaka.ui.highscore.HighScoreWindow;
@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class MinesweeperView implements View{
+    private static final String FONT = "Serif";
     private static final int MAX_SCORE_FIELD_CHAR_NUMBER = 3;
     private static final int MAIN_WINDOW_WIDTH = 400;
     private static final int MAIN_WINDOW_HEIGHT = 550;
@@ -40,8 +41,6 @@ public class MinesweeperView implements View{
     private final JLabel scoreLabel;
     private final JLabel flagsLabel;
 
-    private JDialog loseWindow;
-
 
     public MinesweeperView(int gameFieldWidth, int gameFieldHeight){
         this.gameFieldWidth = gameFieldWidth;
@@ -61,9 +60,9 @@ public class MinesweeperView implements View{
         gameFieldView.setVgap(-12);
 
         scoreLabel = new JLabel();
-        scoreLabel.setFont(new Font("Serif", Font.BOLD, 20));
+        scoreLabel.setFont(new Font(FONT, Font.BOLD, 20));
         flagsLabel = new JLabel();
-        flagsLabel.setFont(new Font("Serif", Font.BOLD, 20));
+        flagsLabel.setFont(new Font(FONT, Font.BOLD, 20));
         updateScoreBoard(0, 0);
 
         GridBagConstraints c = new GridBagConstraints();
@@ -154,12 +153,21 @@ public class MinesweeperView implements View{
         highScoreMenuItem.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getButton() == MouseEvent.BUTTON1){
+                if (e.getButton() == MouseEvent.BUTTON1) {
                     presenter.onEvent(new UserEvent(UserEventType.SHOW_HIGH_SCORE_TABLE));
                 }
             }
         });
         JMenuItem exitGameMenuItem = new JMenuItem("Выход");
+        exitGameMenuItem.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    presenter.onEvent(new UserEvent(UserEventType.EXIT_GAME));
+                    System.exit(0); //FIXME Избавиться от exit
+                }
+            }
+        });
         menu.add(newGameMenuItem);
         menu.add(highScoreMenuItem);
         menu.add(exitGameMenuItem);
@@ -191,24 +199,36 @@ public class MinesweeperView implements View{
         presenter.onEvent(event);
     }
 
-    public void showLoseScreen(){
-        if (loseWindow == null){
-            loseWindow = new JDialog();
-            loseWindow.add(new Label("Вы проиграли!"));
-            loseWindow.pack();
-        }
-        loseWindow.setVisible(true);
+    private void showDialogWithCenterLabel(JLabel label, int gap) {
+        JDialog dialog = new JDialog();
+        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        JPanel content = new JPanel();
+        content.setLayout(new BorderLayout(gap, gap));
+        content.setBorder(BorderFactory.createEmptyBorder(gap, gap, gap, gap));
+        content.add(label);
+        dialog.add(content);
+        dialog.setVisible(true);
+        dialog.pack();
+    }
+
+    @Override
+    public void showLoseScreen() {
+        JLabel loseLabel = new JLabel("Вы проиграли!");
+        loseLabel.setFont(new Font(FONT, Font.BOLD, 30));
+        showDialogWithCenterLabel(loseLabel, 30);
     }
 
     @Override
     public void showWinScreen() {
-
+        JLabel winLabel = new JLabel("Вы проиграли!");
+        winLabel.setFont(new Font(FONT, Font.BOLD, 30));
+        showDialogWithCenterLabel(winLabel, 30);
     }
 
     @Override
     public void showHighScoreTable(@NotNull HighScoreTable table) {
         Objects.requireNonNull(table, "Table cant be null");
-        HighScoreWindow highScoreWindow = new HighScoreWindow(table);
+        HighScoreWindow highScoreWindow = new HighScoreWindow(table, new Font(FONT, Font.BOLD, 20));
         highScoreWindow.show();
     }
 

@@ -5,5 +5,6 @@ public enum UserEventType {
     SHOW_CELL,
     SHOW_NEAR_EMPTY_CELLS,
     NEW_GAME,
-    SHOW_HIGH_SCORE_TABLE
+    SHOW_HIGH_SCORE_TABLE,
+    EXIT_GAME,
 }

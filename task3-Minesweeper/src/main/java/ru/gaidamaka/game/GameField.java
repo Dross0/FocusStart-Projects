@@ -2,8 +2,13 @@ package ru.gaidamaka.game;
 
 import org.jetbrains.annotations.NotNull;
 import ru.gaidamaka.exception.GameFieldException;
+import ru.gaidamaka.game.cell.Cell;
+import ru.gaidamaka.game.cell.CellType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
 
 public class GameField {
     private static final int MAX_FIELD_WIDTH = 32;
