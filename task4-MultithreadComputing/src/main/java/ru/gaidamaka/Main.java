@@ -11,7 +11,7 @@ public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     private static final int ARGUMENTS_NUMBER = 1;
-    private static final int THREADS_NUMBER = 5;
+    private static final int THREADS_NUMBER = 10;
 
     public static void main(String[] args) {
         if (args.length != ARGUMENTS_NUMBER) {
@@ -33,7 +33,17 @@ public class Main {
 
     private static void calculateWithTimeMeasurement(int maxArgument) {
         try {
-            MultithreadedFunctionCalculator calculator = new MultithreadedFunctionCalculator(THREADS_NUMBER, maxArgument);
+            MultithreadedFunctionCalculator calculator = new MultithreadedFunctionCalculator(
+                    number -> {
+                        double result = number;
+                        for (int i = 0; i < 100; i++) {
+                            result = Math.sin(result);
+                        }
+                        return Math.tan(result);
+                    },
+                    THREADS_NUMBER,
+                    maxArgument
+            );
             Instant beforeCalc = Instant.now();
             double result = calculator.calc();
             long calcDurationMS = Duration.between(beforeCalc, Instant.now()).abs().toMillis();
