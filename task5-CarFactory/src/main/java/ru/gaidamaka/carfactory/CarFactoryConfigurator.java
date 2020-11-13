@@ -4,7 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import ru.gaidamaka.carfactory.exception.CarFactoryConfiguratorException;
 
 import java.util.Objects;
-import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Properties;
 
 public class CarFactoryConfigurator {
@@ -54,11 +54,11 @@ public class CarFactoryConfigurator {
         return carFactory;
     }
 
-    private Optional<Integer> getIntegerProperty(Properties properties, String key) {
+    private OptionalInt getIntegerProperty(Properties properties, String key) {
         try {
-            return Optional.of(Integer.parseInt(properties.getProperty(key)));
+            return OptionalInt.of(Integer.parseInt(properties.getProperty(key)));
         } catch (NumberFormatException e) {
-            return Optional.empty();
+            return OptionalInt.empty();
         }
     }
 
