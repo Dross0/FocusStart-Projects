@@ -27,22 +27,13 @@ public class CarFactoryConfigurator {
     public CarFactoryConfigurator(@NotNull Properties properties) {
         Objects.requireNonNull(properties, "Properties cant be null");
         this.consumersNumber = getIntegerProperty(properties, "consumersNumber")
-                .orElseThrow(() -> {
-                            throw new CarFactoryConfiguratorException("Consumers number is unavailable");
-                        }
-                );
+                .orElseThrow(() -> new CarFactoryConfiguratorException("Consumers number is unavailable"));
         validateParameter("Consumers number", consumersNumber, MIN_CONSUMERS_NUMBER, MAX_CONSUMERS_NUMBER);
         this.producersNumber = getIntegerProperty(properties, "producersNumber")
-                .orElseThrow(() -> {
-                            throw new CarFactoryConfiguratorException("Producers number is unavailable");
-                        }
-                );
+                .orElseThrow(() -> new CarFactoryConfiguratorException("Producers number is unavailable"));
         validateParameter("Producers number", producersNumber, MIN_PRODUCERS_NUMBER, MAX_PRODUCERS_NUMBER);
         this.storageCapacity = getIntegerProperty(properties, "storageCapacity")
-                .orElseThrow(() -> {
-                            throw new CarFactoryConfiguratorException("Storage capacity is unavailable");
-                        }
-                );
+                .orElseThrow(() -> new CarFactoryConfiguratorException("Storage capacity is unavailable"));
         validateParameter("Storage capacity", storageCapacity, MIN_STORAGE_CAPACITY);
         this.takingPeriodMS = getIntegerProperty(properties, "takingPeriod")
                 .orElse(DEFAULT_TAKING_PERIOD_MS);
