@@ -1,4 +1,4 @@
-package ru.gaidamaka;
+package ru.gaidamaka.userevent;
 
 public enum UserEventType {
     FLAG_SET,

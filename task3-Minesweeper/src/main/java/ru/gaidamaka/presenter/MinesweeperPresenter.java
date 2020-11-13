@@ -1,22 +1,21 @@
 package ru.gaidamaka.presenter;
 
 import org.jetbrains.annotations.NotNull;
-import ru.gaidamaka.UserEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.gaidamaka.exception.HighScoreTableManagerException;
 import ru.gaidamaka.game.Game;
 import ru.gaidamaka.game.event.GameEvent;
-import ru.gaidamaka.highscoretable.HighScoreTable;
 import ru.gaidamaka.highscoretable.HighScoreTableManager;
 import ru.gaidamaka.highscoretable.PlayerRecord;
 import ru.gaidamaka.timer.Timer;
 import ru.gaidamaka.ui.View;
+import ru.gaidamaka.userevent.*;
 
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class MinesweeperPresenter implements Presenter {
-    private static final Logger logger = Logger.getLogger(MinesweeperPresenter.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(MinesweeperPresenter.class);
 
     private final View view;
     private final Game game;
@@ -39,22 +38,31 @@ public class MinesweeperPresenter implements Presenter {
     @Override
     public void onEvent(@NotNull UserEvent event) {
         Objects.requireNonNull(event, "User event cant be null");
-        switch (event.getType()){
+        switch (event.getType()) {
             case EXIT_GAME:
                 game.exit();
+                timer.stop();
                 break;
             case FLAG_SET:
-                game.toggleMarkCell(event.getX(), event.getY());
+                FlagSetEvent flagSetEvent = (FlagSetEvent) event;
+                game.toggleMarkCell(flagSetEvent.getX(), flagSetEvent.getY());
                 view.updateScoreBoard(secondsAfterStartGame, game.getCurrentBombsNumberWithoutMarkedCells());
                 break;
             case SHOW_CELL:
-                game.showCell(event.getX(), event.getY());
+                ShowCellEvent showCellEvent = (ShowCellEvent) event;
+                game.showCell(showCellEvent.getX(), showCellEvent.getY());
                 break;
             case SHOW_NEAR_EMPTY_CELLS:
-                game.showNeighborsOfOpenCell(event.getX(), event.getY());
+                ShowNearEmptyCellsEvent nearEmptyCellsEvent = (ShowNearEmptyCellsEvent) event;
+                game.showNeighborsOfOpenCell(nearEmptyCellsEvent.getX(), nearEmptyCellsEvent.getY());
                 break;
             case NEW_GAME:
-                game.reset(10, 10, 1); //FIXME
+                NewGameEvent newGameEvent = (NewGameEvent) event;
+                game.reset(
+                        newGameEvent.getFieldWidth(),
+                        newGameEvent.getFieldHeight(),
+                        newGameEvent.getBombsNumber()
+                );
                 runGame();
                 break;
             case SHOW_HIGH_SCORE_TABLE:
@@ -65,13 +73,14 @@ public class MinesweeperPresenter implements Presenter {
 
     public void runGame(){
         secondsAfterStartGame = 0;
+        updateGameHighScoreTable();
         game.run();
     }
 
     private void showResultWindow(GameEvent gameEvent){
         switch (gameEvent.getCurrentGameStatus()){
             case WIN:
-                if (isNewHighScore(gameEvent.getScore())){
+                if (gameEvent.isNewHighScore()) {
                     String playerName = view.readPlayerName();
                     highScoreTableManager
                             .getOrCreateTable()
@@ -81,7 +90,7 @@ public class MinesweeperPresenter implements Presenter {
                 try {
                     highScoreTableManager.save();
                 } catch (HighScoreTableManagerException e) {
-                    logger.log(Level.WARNING,"Cant save high score table", e);
+                    logger.warn("Cant save high score table", e);
                 }
                 break;
             case LOSE:
@@ -103,16 +112,16 @@ public class MinesweeperPresenter implements Presenter {
                 break;
         }
         gameEvent.getUpdatedCells().forEach(view::drawCell);
+
     }
 
-    private boolean isNewHighScore(int score) {
+    private void updateGameHighScoreTable() {
         try {
             highScoreTableManager.read();
         } catch (HighScoreTableManagerException e) {
-            logger.log(Level.WARNING, "Cant read high score table, default table will be used", e);
+            logger.warn("Cant read high score table, default table will be used", e);
         }
-        HighScoreTable table = highScoreTableManager.getOrCreateTable();
-        return table.isHighScore(score);
+        game.setHighScoreTable(highScoreTableManager.getOrCreateTable());
     }
 
     @Override

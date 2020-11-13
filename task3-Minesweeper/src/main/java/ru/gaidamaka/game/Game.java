@@ -1,11 +1,13 @@
 package ru.gaidamaka.game;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.gaidamaka.GameObservable;
 import ru.gaidamaka.GameObserver;
 import ru.gaidamaka.game.cell.Cell;
 import ru.gaidamaka.game.event.GameEvent;
 import ru.gaidamaka.game.event.GameEventType;
+import ru.gaidamaka.highscoretable.HighScoreTable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +20,8 @@ public class Game implements Runnable, GameObservable {
 
     private GameField gameField;
 
+    @Nullable
+    private HighScoreTable highScoreTable;
     private final List<Cell> updatedCells;
     private final List<GameObserver> observers;
     private GameStatus gameStatus;
@@ -27,9 +31,10 @@ public class Game implements Runnable, GameObservable {
     private int score;
 
 
-    public Game(int width, int height, int bombsNumber){
+    public Game(int width, int height, int bombsNumber) {
         updatedCells = new ArrayList<>();
         observers = new ArrayList<>();
+        highScoreTable = null;
         reset(width, height, bombsNumber);
     }
 
@@ -37,7 +42,7 @@ public class Game implements Runnable, GameObservable {
         this(DEFAULT_FIELD_WIDTH, DEFAULT_FIELD_HEIGHT, DEFAULT_BOMBS_NUMBER);
     }
 
-    public void reset(int width, int height, int bombsNumber){
+    public void reset(int width, int height, int bombsNumber) {
         gameField = new GameField(width, height, bombsNumber);
         this.bombsNumber = bombsNumber;
         marksNumber = 0;
@@ -47,15 +52,20 @@ public class Game implements Runnable, GameObservable {
         gameStatus = GameStatus.STOPPED;
     }
 
-    private void showCellWithoutNotify(int x, int y){
+    public void setHighScoreTable(@NotNull HighScoreTable highScoreTable) {
+        Objects.requireNonNull(highScoreTable, "High score table cant be null");
+        this.highScoreTable = highScoreTable;
+    }
+
+    private void showCellWithoutNotify(int x, int y) {
         Cell cell = gameField.getCell(x, y);
-        if (!cell.isHidden() || cell.isMarked()){
+        if (!cell.isHidden() || cell.isMarked()) {
             return;
         }
         cell.show();
         closedCellsNumber--;
         updatedCells.add(cell);
-        switch (cell.getType()){
+        switch (cell.getType()) {
             case BOMB:
                 lose();
                 break;
@@ -168,11 +178,18 @@ public class Game implements Runnable, GameObservable {
         observers.add(gameObserver);
     }
 
+    private boolean isNewHighScore() {
+        return highScoreTable != null && highScoreTable.isHighScore(score);
+    }
+
     private GameEvent createGameEvent(GameEventType eventType) {
-        final List<Cell> updatedCellsCopy = new ArrayList<>();
-        updatedCells.forEach(cell -> updatedCellsCopy.add(new Cell(cell)));
+        final List<Cell> updatedCellsCopy = new ArrayList<>(updatedCells);
         updatedCells.clear();
-        return new GameEvent(updatedCellsCopy, gameStatus, score, eventType);
+        GameEvent gameEvent = new GameEvent(updatedCellsCopy, gameStatus, eventType, score);
+        if (gameStatus == GameStatus.WIN && isNewHighScore()) {
+            gameEvent.newHighScore();
+        }
+        return gameEvent;
     }
 
     @Override

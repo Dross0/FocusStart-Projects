@@ -1,9 +1,9 @@
 package ru.gaidamaka.ui;
 
-import ru.gaidamaka.UserEvent;
 import ru.gaidamaka.game.cell.Cell;
 import ru.gaidamaka.highscoretable.HighScoreTable;
 import ru.gaidamaka.presenter.Presenter;
+import ru.gaidamaka.userevent.UserEvent;
 
 
 public interface View {

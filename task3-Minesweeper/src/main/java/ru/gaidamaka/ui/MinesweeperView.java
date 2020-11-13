@@ -1,124 +1,98 @@
 package ru.gaidamaka.ui;
 
 import org.jetbrains.annotations.NotNull;
-import ru.gaidamaka.UserEvent;
-import ru.gaidamaka.UserEventType;
+import ru.gaidamaka.exception.ImageReadException;
 import ru.gaidamaka.game.cell.Cell;
 import ru.gaidamaka.game.cell.CellType;
 import ru.gaidamaka.highscoretable.HighScoreTable;
 import ru.gaidamaka.presenter.Presenter;
+import ru.gaidamaka.ui.gamefield.GameFieldView;
 import ru.gaidamaka.ui.highscore.HighScoreWindow;
+import ru.gaidamaka.userevent.ExitGameEvent;
+import ru.gaidamaka.userevent.NewGameEvent;
+import ru.gaidamaka.userevent.ShowHighScoreTableEvent;
+import ru.gaidamaka.userevent.UserEvent;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class MinesweeperView implements View{
+public class MinesweeperView implements View {
     private static final String FONT = "Serif";
     private static final int MAX_SCORE_FIELD_CHAR_NUMBER = 3;
-    private static final int MAIN_WINDOW_WIDTH = 400;
-    private static final int MAIN_WINDOW_HEIGHT = 550;
-    private static final int GAME_FIELD_LAYOUT_HEIGHT = 500;
     private static final int IMAGE_SIZE = 40;
+    private static final int MAX_FIELD_WIDTH_SIZE = 32;
+    private static final int MAX_FIELD_HEIGHT_SIZE = 32;
+    private static final int MAX_BOMBS_NUMBER_SIZE = 32;
+
     private final JFrame mainWindow;
-    private final GridBagLayout mainWindowLayout;
-    private final JPanel gameField;
-    private final GridLayout gameFieldView;
+    private GameFieldView gameFieldView;
 
     private List<ImageIcon> nearBombsIcons;
     private ImageIcon flagIcon;
     private ImageIcon bombIcon;
     private ImageIcon closedCellIcon;
+    private ImageIcon newGameConfigIcon;
+    private ImageIcon highScoreWindowIcon;
 
-    private List<JButton> field;
-    private final int gameFieldHeight;
-    private final int gameFieldWidth;
     private Presenter presenter;
-    private final JLabel scoreLabel;
-    private final JLabel flagsLabel;
+    private JLabel scoreLabel;
+    private JLabel flagsLabel;
 
 
-    public MinesweeperView(int gameFieldWidth, int gameFieldHeight){
-        this.gameFieldWidth = gameFieldWidth;
-        this.gameFieldHeight = gameFieldHeight;
+    public MinesweeperView(int gameFieldWidth, int gameFieldHeight) {
         mainWindow = new JFrame();
-        mainWindow.setSize(IMAGE_SIZE * gameFieldWidth, IMAGE_SIZE * gameFieldHeight);
         mainWindow.setTitle("Сапёр");
         mainWindow.setResizable(true);
-        mainWindowLayout = new GridBagLayout();
-        mainWindow.setLayout(mainWindowLayout);
-        gameField = new JPanel();
-        //gameField.setSize(IMAGE_SIZE * gameFieldWidth, IMAGE_SIZE * gameFieldHeight);
-
-        gameFieldView = new GridLayout(gameFieldHeight, gameFieldWidth, 0, 0);
-        gameField.setLayout(gameFieldView);
-        gameFieldView.setHgap(-12);
-        gameFieldView.setVgap(-12);
-
-        scoreLabel = new JLabel();
-        scoreLabel.setFont(new Font(FONT, Font.BOLD, 20));
-        flagsLabel = new JLabel();
-        flagsLabel.setFont(new Font(FONT, Font.BOLD, 20));
-        updateScoreBoard(0, 0);
-
-        GridBagConstraints c = new GridBagConstraints();
-        //c.fill = GridBagConstraints.VERTICAL;
-        c.gridx = 0;
-        c.gridy = 0;
-        c.anchor = GridBagConstraints.WEST;
-        mainWindow.add(scoreLabel, c);
-        c.gridx = 1;
-        mainWindow.add(flagsLabel, c);
-        c.gridx = 0;
-        c.gridy = 1;
-        mainWindow.add(gameField, c);
+        mainWindow.setLayout(new GridBagLayout());
+        initScoreBar();
+        initGameField(gameFieldWidth, gameFieldHeight);
         initIcons();
-        initField();
         initMenu();
         mainWindow.pack();
         mainWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         mainWindow.setVisible(true);
     }
 
-    private void initField(){
-        field = new ArrayList<>(gameFieldHeight * gameFieldWidth);
-        for (int row = 0; row < gameFieldHeight; row++) {
-            for (int col = 0; col < gameFieldWidth; col++) {
-                JButton button = new JButton(closedCellIcon);
-                field.add(button);
-                button.setMargin(new Insets(0, 0, 0, 0));
-                button.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        UserEventType type = UserEventType.SHOW_CELL;
-                        if (e.getButton() == MouseEvent.BUTTON2){
-                            type = UserEventType.SHOW_NEAR_EMPTY_CELLS;
-                        }
-                        else if (e.getButton() == MouseEvent.BUTTON1){
-                            type = UserEventType.SHOW_CELL;
-                        }
-                        else if (e.getButton() == MouseEvent.BUTTON3){
-                            type = UserEventType.FLAG_SET;
-                        }
-                        fireEvent(new UserEvent(type, field.indexOf(button) % gameFieldWidth,
-                                field.indexOf(button) / gameFieldWidth
-                        ));
-                    }
-                });
-                gameField.add(button);
-            }
-        }
+    private void initGameField(int gameFieldWidth, int gameFieldHeight) {
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridy = 1;
+        c.gridwidth = 2;
+        gameFieldView = new GameFieldView();
+        gameFieldView.setButtonPreferredWidth(IMAGE_SIZE);
+        gameFieldView.setButtonPreferredHeight(IMAGE_SIZE);
+        gameFieldView.reset(gameFieldWidth, gameFieldHeight, this::fireEvent);
+        mainWindow.add(gameFieldView.getGameFieldPanel(), c);
     }
 
-    private ImageIcon readImage(String imageName){
-        return new ImageIcon(Objects.requireNonNull(
-                MinesweeperView.class.getClassLoader().getResource(imageName)),
-                "Wrong resource name"
-        );
+
+    private void initScoreBar() {
+        scoreLabel = new JLabel();
+        scoreLabel.setFont(new Font(FONT, Font.BOLD, 20));
+        flagsLabel = new JLabel();
+        flagsLabel.setFont(new Font(FONT, Font.BOLD, 20));
+        updateScoreBoard(0, 0);
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.anchor = GridBagConstraints.WEST;
+        mainWindow.add(scoreLabel, c);
+        c.gridx = 1;
+        c.anchor = GridBagConstraints.EAST;
+        mainWindow.add(flagsLabel, c);
+    }
+
+    private ImageIcon readImage(String imageName) {
+        URL imageRes = MinesweeperView.class.getClassLoader().getResource(imageName);
+        if (imageRes == null) {
+            throw new ImageReadException("Cant read image from = {" + imageName + "}");
+        }
+        return new ImageIcon(imageRes);
     }
 
     private ImageIcon readAndResizeImage(String imageName){
@@ -128,7 +102,7 @@ public class MinesweeperView implements View{
         return new ImageIcon(scaledImage);
     }
 
-    private void initIcons(){
+    private void initIcons() {
         nearBombsIcons = new ArrayList<>();
         for (int i = 0; i < 9; i++) {
             nearBombsIcons.add(readAndResizeImage(i + ".png"));
@@ -136,6 +110,8 @@ public class MinesweeperView implements View{
         closedCellIcon = readAndResizeImage("closedCell.png");
         bombIcon = readAndResizeImage("bomb.png");
         flagIcon = readAndResizeImage("flag.png");
+        newGameConfigIcon = readImage("newGameSettings.png");
+        highScoreWindowIcon = readImage("recordDialog.png");
     }
 
     private void initMenu(){
@@ -145,7 +121,7 @@ public class MinesweeperView implements View{
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1){
-                    presenter.onEvent(new UserEvent(UserEventType.NEW_GAME));
+                    newGameStart();
                 }
             }
         });
@@ -154,7 +130,7 @@ public class MinesweeperView implements View{
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
-                    presenter.onEvent(new UserEvent(UserEventType.SHOW_HIGH_SCORE_TABLE));
+                    presenter.onEvent(new ShowHighScoreTableEvent());
                 }
             }
         });
@@ -163,8 +139,9 @@ public class MinesweeperView implements View{
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
-                    presenter.onEvent(new UserEvent(UserEventType.EXIT_GAME));
-                    System.exit(0); //FIXME Избавиться от exit
+                    presenter.onEvent(new ExitGameEvent());
+                    mainWindow.setVisible(false);
+                    mainWindow.dispatchEvent(new WindowEvent(mainWindow, WindowEvent.WINDOW_CLOSING));
                 }
             }
         });
@@ -174,22 +151,66 @@ public class MinesweeperView implements View{
         mainWindow.setJMenuBar(menu);
     }
 
+    private JSlider createNewGameConfigSlider(int min, int max, int defaultValue, int majorTickSpacing) {
+        JSlider slider = new JSlider(SwingConstants.HORIZONTAL, min, max, defaultValue);
+        slider.setMajorTickSpacing(majorTickSpacing);
+        slider.setMinorTickSpacing(1);
+        slider.setPaintTicks(true);
+        slider.setPaintLabels(true);
+        return slider;
+    }
+
+    private void newGameStart() {
+        JPanel newGameConfigurationPanel = new JPanel();
+        newGameConfigurationPanel.setLayout(new BoxLayout(newGameConfigurationPanel, BoxLayout.Y_AXIS));
+
+        JLabel fieldWidthLabel = new JLabel("Ширина поля");
+        JSlider fieldWidthSlider = createNewGameConfigSlider(1, MAX_FIELD_WIDTH_SIZE, 10, 10);
+        newGameConfigurationPanel.add(fieldWidthLabel);
+        newGameConfigurationPanel.add(fieldWidthSlider);
+
+        JLabel fieldHeightLabel = new JLabel("Высота поля");
+        JSlider fieldHeightSlider = createNewGameConfigSlider(1, MAX_FIELD_HEIGHT_SIZE, 10, 10);
+        newGameConfigurationPanel.add(fieldHeightLabel);
+        newGameConfigurationPanel.add(fieldHeightSlider);
+
+        JLabel bombsNumberLabel = new JLabel("Количество бомб");
+        JSlider bombsNumberSlider = createNewGameConfigSlider(1, MAX_BOMBS_NUMBER_SIZE, 10, 10);
+        newGameConfigurationPanel.add(bombsNumberLabel);
+        newGameConfigurationPanel.add(bombsNumberSlider);
+
+        showMessageDialog(
+                newGameConfigurationPanel,
+                "Новая игра",
+                newGameConfigIcon
+        );
+
+        int fieldWidth = fieldWidthSlider.getValue();
+        int fieldHeight = fieldHeightSlider.getValue();
+        int bombsNumber = bombsNumberSlider.getValue();
+        gameFieldView.reset(fieldWidth, fieldHeight, this::fireEvent);
+        mainWindow.pack();
+        presenter.onEvent(new NewGameEvent(
+                fieldWidth,
+                fieldHeight,
+                bombsNumber
+        ));
+    }
+
     @Override
     public void drawCell(@NotNull Cell cell) {
         Objects.requireNonNull(cell, "Cell cant be null");
-        JButton relButton = field.get(cell.getY() * gameFieldWidth + cell.getX());
-        if (cell.isMarked()){
-            relButton.setIcon(flagIcon);
+        if (cell.isMarked()) {
+            gameFieldView.updateCell(cell.getX(), cell.getY(), flagIcon);
             return;
         }
-        if (cell.isHidden()){
-            relButton.setIcon(closedCellIcon);
+        if (cell.isHidden()) {
+            gameFieldView.updateCell(cell.getX(), cell.getY(), closedCellIcon);
         } else{
             if (cell.getType() == CellType.BOMB){
-                relButton.setIcon(bombIcon);
-                System.out.println(1);
+                gameFieldView.updateCell(cell.getX(), cell.getY(), bombIcon);
             } else{
-                relButton.setIcon(nearBombsIcons.get(cell.getNearBombNumber()));
+                gameFieldView.updateCell(cell.getX(), cell.getY(), nearBombsIcons.get(cell.getNearBombNumber()));
             }
         }
     }
@@ -220,7 +241,7 @@ public class MinesweeperView implements View{
 
     @Override
     public void showWinScreen() {
-        JLabel winLabel = new JLabel("Вы проиграли!");
+        JLabel winLabel = new JLabel("Вы выиграли!");
         winLabel.setFont(new Font(FONT, Font.BOLD, 30));
         showDialogWithCenterLabel(winLabel, 30);
     }
@@ -251,13 +272,23 @@ public class MinesweeperView implements View{
         JTextField userNameInputField = new JTextField(30);
         userNameInputPanel.add(new JLabel("Ваше имя: "), BorderLayout.LINE_START);
         userNameInputPanel.add(userNameInputField);
-        JOptionPane.showMessageDialog(mainWindow,
-                userNameInputPanel,
-                "Новый рекорд",
-                JOptionPane.QUESTION_MESSAGE,
-                readImage("recordDialog.png")
-        );
+        do {
+            showMessageDialog(
+                    userNameInputPanel,
+                    "Вы попали в таблицу рекордов",
+                    highScoreWindowIcon
+            );
+        } while (userNameInputField.getText().isBlank());
         return userNameInputField.getText();
+    }
+
+    private void showMessageDialog(JPanel panel, String title, ImageIcon image) {
+        JOptionPane.showMessageDialog(mainWindow,
+                panel,
+                title,
+                JOptionPane.QUESTION_MESSAGE,
+                image
+        );
     }
 
     @Override

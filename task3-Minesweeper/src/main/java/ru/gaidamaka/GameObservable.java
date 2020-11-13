@@ -1,5 +1,6 @@
 package ru.gaidamaka;
 
+
 import ru.gaidamaka.game.event.GameEvent;
 
 public interface GameObservable {
