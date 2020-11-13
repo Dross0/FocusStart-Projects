@@ -7,6 +7,7 @@ import ru.gaidamaka.carfactory.CarFactoryConfigurator;
 import ru.gaidamaka.carfactory.exception.CarFactoryConfiguratorException;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 public class Main {
@@ -15,12 +16,11 @@ public class Main {
     private static final String FACTORY_PROPERTIES_PATH = "factory.properties";
 
     public static void main(String[] args) {
-        try {
+        try (InputStream propertiesInputStream = Main.class
+                .getClassLoader()
+                .getResourceAsStream(FACTORY_PROPERTIES_PATH)) {
             final Properties factoryProperties = new Properties();
-            factoryProperties.load(Main.class
-                    .getClassLoader()
-                    .getResourceAsStream(FACTORY_PROPERTIES_PATH)
-            );
+            factoryProperties.load(propertiesInputStream);
             final CarFactoryConfigurator factoryConfigurator = new CarFactoryConfigurator(factoryProperties);
             CarFactory carFactory = factoryConfigurator.createFactory();
             carFactory.start();
