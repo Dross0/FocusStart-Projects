@@ -2,33 +2,31 @@ package ru.gaidamaka.car;
 
 
 import java.util.Objects;
+import java.util.UUID;
 
 
 public class Car {
-    private static int carNumbers = 0;
-
     private final Engine engine;
     private final Body body;
-    private final int id;
+    private final UUID uuid;
 
     public Car(Engine engine, Body body) {
         this.engine = Objects.requireNonNull(engine, "Engine cant be null");
         this.body = Objects.requireNonNull(body, "Body cant be null");
-        carNumbers++;
-        this.id = carNumbers;
+        this.uuid = UUID.randomUUID();
 
     }
 
-    public int getEngineId() {
+    public UUID getEngineId() {
         return engine.getID();
     }
 
-    public int getBodyId() {
+    public UUID getBodyId() {
         return body.getID();
     }
 
-    public int getId() {
-        return id;
+    public UUID getId() {
+        return uuid;
     }
 
     @Override
@@ -36,7 +34,7 @@ public class Car {
         return com.google.common.base.MoreObjects.toStringHelper(this)
                 .add("engine", engine)
                 .add("body", body)
-                .add("id", id)
+                .add("id", uuid)
                 .toString();
     }
 }
