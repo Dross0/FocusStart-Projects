@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Optional;
+import java.util.OptionalInt;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
@@ -20,7 +20,7 @@ public class Main {
             return;
         }
 
-        Optional<Integer> maxFuncArgument = parseInteger(args[0]);
+        OptionalInt maxFuncArgument = parseInteger(args[0]);
 
         maxFuncArgument.ifPresentOrElse(
                 Main::calculateWithTimeMeasurement,
@@ -57,11 +57,11 @@ public class Main {
         }
     }
 
-    private static Optional<Integer> parseInteger(String number) {
+    private static OptionalInt parseInteger(String number) {
         try {
-            return Optional.of(Integer.parseInt(number));
+            return OptionalInt.of(Integer.parseInt(number));
         } catch (NumberFormatException e) {
-            return Optional.empty();
+            return OptionalInt.empty();
         }
     }
 }
