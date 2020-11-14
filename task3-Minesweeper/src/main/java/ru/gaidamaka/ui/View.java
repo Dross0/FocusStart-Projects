@@ -1,5 +1,6 @@
 package ru.gaidamaka.ui;
 
+import org.jetbrains.annotations.NotNull;
 import ru.gaidamaka.game.cell.Cell;
 import ru.gaidamaka.highscoretable.HighScoreTable;
 import ru.gaidamaka.presenter.Presenter;
@@ -22,4 +23,6 @@ public interface View {
     void showHighScoreTable(HighScoreTable table);
 
     String readPlayerName();
+
+    void showErrorMessage(@NotNull String errorMessage);
 }

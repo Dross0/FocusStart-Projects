@@ -3,6 +3,7 @@ package ru.gaidamaka.presenter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.gaidamaka.exception.GameFieldException;
 import ru.gaidamaka.exception.HighScoreTableManagerException;
 import ru.gaidamaka.game.Game;
 import ru.gaidamaka.game.event.GameEvent;
@@ -25,7 +26,7 @@ public class MinesweeperPresenter implements Presenter {
 
     public MinesweeperPresenter(@NotNull Game game,
                                 @NotNull View view,
-                                @NotNull HighScoreTableManager manager){
+                                @NotNull HighScoreTableManager manager) {
         this.game = Objects.requireNonNull(game, "Game cant be null");
         this.view = Objects.requireNonNull(view, "View cant be null");
         this.highScoreTableManager = Objects.requireNonNull(manager, "High score table manager cant be null");
@@ -35,13 +36,17 @@ public class MinesweeperPresenter implements Presenter {
         view.setPresenter(this);
     }
 
+    public void finishGame() {
+        game.exit();
+        timer.stop();
+    }
+
     @Override
     public void onEvent(@NotNull UserEvent event) {
         Objects.requireNonNull(event, "User event cant be null");
         switch (event.getType()) {
             case EXIT_GAME:
-                game.exit();
-                timer.stop();
+                finishGame();
                 break;
             case FLAG_SET:
                 FlagSetEvent flagSetEvent = (FlagSetEvent) event;
@@ -58,12 +63,11 @@ public class MinesweeperPresenter implements Presenter {
                 break;
             case NEW_GAME:
                 NewGameEvent newGameEvent = (NewGameEvent) event;
-                game.reset(
+                restartGame(
                         newGameEvent.getFieldWidth(),
                         newGameEvent.getFieldHeight(),
                         newGameEvent.getBombsNumber()
                 );
-                runGame();
                 break;
             case SHOW_HIGH_SCORE_TABLE:
                 view.showHighScoreTable(highScoreTableManager.getOrCreateTable());
@@ -71,14 +75,30 @@ public class MinesweeperPresenter implements Presenter {
         }
     }
 
-    public void runGame(){
+    private void restartGame(int fieldWidth, int fieldHeight, int bombsNumber) {
+        try {
+            game.reset(
+                    fieldWidth,
+                    fieldHeight,
+                    bombsNumber
+            );
+        } catch (GameFieldException e) {
+            logger.error("Wrong field parameters", e);
+            view.showErrorMessage("Недопустимые параметры поля");
+            finishGame();
+            return;
+        }
+        runGame();
+    }
+
+    public void runGame() {
         secondsAfterStartGame = 0;
         updateGameHighScoreTable();
         game.run();
     }
 
-    private void showResultWindow(GameEvent gameEvent){
-        switch (gameEvent.getCurrentGameStatus()){
+    private void showResultWindow(GameEvent gameEvent) {
+        switch (gameEvent.getCurrentGameStatus()) {
             case WIN:
                 if (gameEvent.isNewHighScore()) {
                     String playerName = view.readPlayerName();

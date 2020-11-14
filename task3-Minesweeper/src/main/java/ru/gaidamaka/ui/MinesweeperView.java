@@ -48,16 +48,39 @@ public class MinesweeperView implements View {
 
     public MinesweeperView(int gameFieldWidth, int gameFieldHeight) {
         mainWindow = new JFrame();
+        mainWindow.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         mainWindow.setTitle("Сапёр");
         mainWindow.setResizable(true);
         mainWindow.setLayout(new GridBagLayout());
         initScoreBar();
         initGameField(gameFieldWidth, gameFieldHeight);
-        initIcons();
         initMenu();
+        try {
+            initIcons();
+        } catch (ImageReadException e) {
+            showErrorMessage("Технические неполадки: Отсутсвуют необходимые иконки");
+            throw e;
+        }
         mainWindow.pack();
-        mainWindow.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         mainWindow.setVisible(true);
+    }
+
+    public void showErrorMessage(@NotNull String errorMessage) {
+        JPanel contentPanel = new JPanel();
+        JLabel errorMessageLabel = new JLabel(errorMessage);
+        contentPanel.add(errorMessageLabel);
+        JOptionPane.showMessageDialog(
+                mainWindow,
+                contentPanel,
+                "Ошибка",
+                JOptionPane.ERROR_MESSAGE
+        );
+        closeApp();
+    }
+
+    private void closeApp() {
+        mainWindow.setVisible(false);
+        mainWindow.dispatchEvent(new WindowEvent(mainWindow, WindowEvent.WINDOW_CLOSING));
     }
 
     private void initGameField(int gameFieldWidth, int gameFieldHeight) {
@@ -140,8 +163,7 @@ public class MinesweeperView implements View {
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
                     presenter.onEvent(new ExitGameEvent());
-                    mainWindow.setVisible(false);
-                    mainWindow.dispatchEvent(new WindowEvent(mainWindow, WindowEvent.WINDOW_CLOSING));
+                    closeApp();
                 }
             }
         });

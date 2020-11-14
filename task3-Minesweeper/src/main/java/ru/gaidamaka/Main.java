@@ -21,7 +21,7 @@ public class Main {
     private static final int DEFAULT_FIELD_HEIGHT = 10;
     private static final int DEFAULT_BOMBS_NUMBER = 10;
     private static final int HIGH_SCORE_TABLE_CAPACITY = 10;
-    private static final Path HIGH_SCORE_TABLE_PATH = Path.of("userRecords");
+    private static final Path HIGH_SCORE_TABLE_PATH = Path.of("userRecords.data");
 
     public static void main(String[] args) {
         try {
