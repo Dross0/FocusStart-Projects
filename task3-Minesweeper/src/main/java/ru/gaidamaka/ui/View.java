@@ -8,23 +8,24 @@ import ru.gaidamaka.userevent.UserEvent;
 
 
 public interface View {
-    void drawCell(Cell cell);
+    void drawCell(@NotNull Cell cell);
 
     void updateScoreBoard(int score, int flagsNumber);
 
-    void fireEvent(UserEvent event);
+    void fireEvent(@NotNull UserEvent event);
 
-    void setPresenter(Presenter presenter);
+    void setPresenter(@NotNull Presenter presenter);
 
     void showLoseScreen();
 
     void showWinScreen();
 
-    void showHighScoreTable(HighScoreTable table);
+    void showHighScoreTable(@NotNull HighScoreTable table);
 
+    @NotNull
     String readPlayerName();
 
     void showErrorMessage(@NotNull String errorMessage);
 
-    void showAbout(String aboutText);
+    void showAbout(@NotNull String aboutText);
 }

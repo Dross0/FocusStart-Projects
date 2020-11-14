@@ -76,7 +76,8 @@ public class MinesweeperView implements View {
     }
 
     @Override
-    public void showAbout(String aboutText) {
+    public void showAbout(@NotNull String aboutText) {
+        Objects.requireNonNull(aboutText, "About text cant be null");
         JPanel aboutPanel = new JPanel();
         aboutPanel.setLayout(new BoxLayout(aboutPanel, BoxLayout.Y_AXIS));
         String[] lines = aboutText.split("\n");
@@ -265,8 +266,8 @@ public class MinesweeperView implements View {
     }
 
     @Override
-    public void fireEvent(UserEvent event) {
-        presenter.onEvent(event);
+    public void fireEvent(@NotNull UserEvent event) {
+        presenter.onEvent(Objects.requireNonNull(event, "Event cant be null"));
     }
 
     private void showDialogWithCenterLabel(JLabel label, int gap) {
