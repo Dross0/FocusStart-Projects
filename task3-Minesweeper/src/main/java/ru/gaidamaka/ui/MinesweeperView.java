@@ -8,10 +8,7 @@ import ru.gaidamaka.highscoretable.HighScoreTable;
 import ru.gaidamaka.presenter.Presenter;
 import ru.gaidamaka.ui.gamefield.GameFieldView;
 import ru.gaidamaka.ui.highscore.HighScoreWindow;
-import ru.gaidamaka.userevent.ExitGameEvent;
-import ru.gaidamaka.userevent.NewGameEvent;
-import ru.gaidamaka.userevent.ShowHighScoreTableEvent;
-import ru.gaidamaka.userevent.UserEvent;
+import ru.gaidamaka.userevent.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,7 +23,7 @@ import java.util.Objects;
 public class MinesweeperView implements View {
     private static final String FONT = "Serif";
     private static final int MAX_SCORE_FIELD_CHAR_NUMBER = 3;
-    private static final int IMAGE_SIZE = 40;
+    private static final int IMAGE_SIZE = 50;
     private static final int MAX_FIELD_WIDTH_SIZE = 32;
     private static final int MAX_FIELD_HEIGHT_SIZE = 32;
     private static final int MAX_BOMBS_NUMBER_SIZE = 32;
@@ -50,7 +47,7 @@ public class MinesweeperView implements View {
         mainWindow = new JFrame();
         mainWindow.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         mainWindow.setTitle("Сапёр");
-        mainWindow.setResizable(true);
+        mainWindow.setResizable(false);
         mainWindow.setLayout(new GridBagLayout());
         initScoreBar();
         initGameField(gameFieldWidth, gameFieldHeight);
@@ -76,6 +73,22 @@ public class MinesweeperView implements View {
                 JOptionPane.ERROR_MESSAGE
         );
         closeApp();
+    }
+
+    @Override
+    public void showAbout(String aboutText) {
+        JPanel aboutPanel = new JPanel();
+        aboutPanel.setLayout(new BoxLayout(aboutPanel, BoxLayout.Y_AXIS));
+        String[] lines = aboutText.split("\n");
+        for (String line : lines) {
+            aboutPanel.add(new JLabel(line));
+        }
+        JOptionPane.showMessageDialog(
+                mainWindow,
+                aboutPanel,
+                "Информация о игре",
+                JOptionPane.INFORMATION_MESSAGE
+        );
     }
 
     private void closeApp() {
@@ -137,19 +150,19 @@ public class MinesweeperView implements View {
         highScoreWindowIcon = readImage("recordDialog.png");
     }
 
-    private void initMenu(){
+    private void initMenu() {
         JMenuBar menu = new JMenuBar();
-        JMenuItem newGameMenuItem = new JMenuItem("Новая игра");
-        newGameMenuItem.addMouseListener(new MouseAdapter() {
+
+        addMenuItem(menu, "Новая игра", new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getButton() == MouseEvent.BUTTON1){
+                if (e.getButton() == MouseEvent.BUTTON1) {
                     newGameStart();
                 }
             }
         });
-        JMenuItem highScoreMenuItem = new JMenuItem("Таблица рекордов");
-        highScoreMenuItem.addMouseListener(new MouseAdapter() {
+
+        addMenuItem(menu, "Таблица рекордов", new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
@@ -157,8 +170,17 @@ public class MinesweeperView implements View {
                 }
             }
         });
-        JMenuItem exitGameMenuItem = new JMenuItem("Выход");
-        exitGameMenuItem.addMouseListener(new MouseAdapter() {
+
+        addMenuItem(menu, "О игре", new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    presenter.onEvent(new ShowAboutEvent());
+                }
+            }
+        });
+
+        addMenuItem(menu, "Выход", new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getButton() == MouseEvent.BUTTON1) {
@@ -167,10 +189,14 @@ public class MinesweeperView implements View {
                 }
             }
         });
-        menu.add(newGameMenuItem);
-        menu.add(highScoreMenuItem);
-        menu.add(exitGameMenuItem);
+
         mainWindow.setJMenuBar(menu);
+    }
+
+    private void addMenuItem(JMenuBar menuBar, String menuItemTitle, MouseAdapter mouseAdapter) {
+        JMenuItem menuItem = new JMenuItem(menuItemTitle);
+        menuItem.addMouseListener(mouseAdapter);
+        menuBar.add(menuItem);
     }
 
     private JSlider createNewGameConfigSlider(int min, int max, int defaultValue, int majorTickSpacing) {
@@ -211,6 +237,7 @@ public class MinesweeperView implements View {
         int fieldHeight = fieldHeightSlider.getValue();
         int bombsNumber = bombsNumberSlider.getValue();
         gameFieldView.reset(fieldWidth, fieldHeight, this::fireEvent);
+        updateScoreBoard(0, 0);
         mainWindow.pack();
         presenter.onEvent(new NewGameEvent(
                 fieldWidth,

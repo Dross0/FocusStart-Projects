@@ -13,16 +13,24 @@ import ru.gaidamaka.timer.Timer;
 import ru.gaidamaka.ui.View;
 import ru.gaidamaka.userevent.*;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Scanner;
 
 public class MinesweeperPresenter implements Presenter {
     private static final Logger logger = LoggerFactory.getLogger(MinesweeperPresenter.class);
+    private static final String DEFAULT_ABOUT_TEXT = "Игра сапер";
 
     private final View view;
     private final Game game;
     private final Timer timer;
     private final HighScoreTableManager highScoreTableManager;
     private int secondsAfterStartGame;
+    private boolean isAllFieldClose = true;
+    private InputStream aboutGameInputStream = null;
+    private String aboutGameText = null;
 
     public MinesweeperPresenter(@NotNull Game game,
                                 @NotNull View view,
@@ -34,6 +42,10 @@ public class MinesweeperPresenter implements Presenter {
         timer.addObserver(this);
         game.addObserver(this);
         view.setPresenter(this);
+    }
+
+    public void setAboutGameInputStream(InputStream aboutGameInputStream) {
+        this.aboutGameInputStream = aboutGameInputStream;
     }
 
     public void finishGame() {
@@ -54,6 +66,10 @@ public class MinesweeperPresenter implements Presenter {
                 view.updateScoreBoard(secondsAfterStartGame, game.getCurrentBombsNumberWithoutMarkedCells());
                 break;
             case SHOW_CELL:
+                if (isAllFieldClose) {
+                    isAllFieldClose = false;
+                    secondsAfterStartGame = 0;
+                }
                 ShowCellEvent showCellEvent = (ShowCellEvent) event;
                 game.showCell(showCellEvent.getX(), showCellEvent.getY());
                 break;
@@ -68,11 +84,34 @@ public class MinesweeperPresenter implements Presenter {
                         newGameEvent.getFieldHeight(),
                         newGameEvent.getBombsNumber()
                 );
+                isAllFieldClose = true;
                 break;
             case SHOW_HIGH_SCORE_TABLE:
                 view.showHighScoreTable(highScoreTableManager.getOrCreateTable());
                 break;
+            case SHOW_ABOUT:
+                view.showAbout(readAboutText()
+                        .orElse(DEFAULT_ABOUT_TEXT)
+                );
+                break;
         }
+    }
+
+    private Optional<String> readAboutText() {
+        if (aboutGameText != null) {
+            return Optional.of(aboutGameText);
+        }
+        if (aboutGameInputStream == null) {
+            return Optional.empty();
+        }
+        Scanner scanner = new Scanner(aboutGameInputStream, StandardCharsets.UTF_8);
+        StringBuilder aboutGameSB = new StringBuilder();
+        while (scanner.hasNextLine()) {
+            aboutGameSB.append(scanner.nextLine()).append('\n');
+
+        }
+        aboutGameText = aboutGameSB.toString();
+        return Optional.of(aboutGameText);
     }
 
     private void restartGame(int fieldWidth, int fieldHeight, int bombsNumber) {
@@ -82,6 +121,8 @@ public class MinesweeperPresenter implements Presenter {
                     fieldHeight,
                     bombsNumber
             );
+            secondsAfterStartGame = 0;
+            view.updateScoreBoard(secondsAfterStartGame, game.getCurrentBombsNumberWithoutMarkedCells());
         } catch (GameFieldException e) {
             logger.error("Wrong field parameters", e);
             view.showErrorMessage("Недопустимые параметры поля");
@@ -147,7 +188,9 @@ public class MinesweeperPresenter implements Presenter {
     @Override
     public void updateTimer() {
         secondsAfterStartGame++;
-        view.updateScoreBoard(secondsAfterStartGame, game.getCurrentBombsNumberWithoutMarkedCells());
-        game.setCurrentScore(secondsAfterStartGame);
+        if (!isAllFieldClose) {
+            view.updateScoreBoard(secondsAfterStartGame, game.getCurrentBombsNumberWithoutMarkedCells());
+            game.setCurrentScore(secondsAfterStartGame);
+        }
     }
 }

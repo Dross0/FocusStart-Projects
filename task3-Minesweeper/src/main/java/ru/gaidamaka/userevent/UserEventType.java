@@ -7,4 +7,5 @@ public enum UserEventType {
     NEW_GAME,
     SHOW_HIGH_SCORE_TABLE,
     EXIT_GAME,
+    SHOW_ABOUT,
 }

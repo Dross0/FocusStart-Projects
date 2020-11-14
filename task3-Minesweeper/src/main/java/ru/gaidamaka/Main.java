@@ -22,6 +22,7 @@ public class Main {
     private static final int DEFAULT_BOMBS_NUMBER = 10;
     private static final int HIGH_SCORE_TABLE_CAPACITY = 10;
     private static final Path HIGH_SCORE_TABLE_PATH = Path.of("userRecords.data");
+    private static final String ABOUT_GAME_FILE_PATH = "about.txt";
 
     public static void main(String[] args) {
         try {
@@ -29,6 +30,7 @@ public class Main {
             View view = new MinesweeperView(DEFAULT_FIELD_WIDTH, DEFAULT_FIELD_HEIGHT);
             HighScoreTableManager manager = new HighScoreTableManager(HIGH_SCORE_TABLE_PATH, HighScoreOrder.MIN, HIGH_SCORE_TABLE_CAPACITY);
             MinesweeperPresenter presenter = new MinesweeperPresenter(game, view, manager);
+            presenter.setAboutGameInputStream(Main.class.getClassLoader().getResourceAsStream(ABOUT_GAME_FILE_PATH));
             presenter.runGame();
         } catch (ImageReadException e) {
             logger.error(e.getMessage(), e);

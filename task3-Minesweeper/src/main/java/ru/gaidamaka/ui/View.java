@@ -25,4 +25,6 @@ public interface View {
     String readPlayerName();
 
     void showErrorMessage(@NotNull String errorMessage);
+
+    void showAbout(String aboutText);
 }
