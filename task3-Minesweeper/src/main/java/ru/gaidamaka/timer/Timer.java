@@ -11,18 +11,18 @@ import java.util.Objects;
 public class Timer implements TimerObservable {
     private final List<TimerObserver> observers;
     private int secondsNumber;
-    private Thread timer;
+    private Thread timerThread;
 
     public Timer() {
         this.secondsNumber = 0;
         observers = new ArrayList<>();
-        timer = new Thread(() -> {
+        timerThread = new Thread(() -> {
             Instant lastTime = Instant.now();
-            while (!timer.isInterrupted()){
+            while (!timerThread.isInterrupted()) {
                 Duration duration = Duration.between(lastTime, Instant.now());
-                if (duration.abs().getSeconds() >= 1){
+                if (duration.abs().getSeconds() >= 1) {
                     lastTime = Instant.now();
-                    synchronized (this){
+                    synchronized (this) {
                         secondsNumber++;
                     }
                     notifyObservers();
@@ -31,19 +31,19 @@ public class Timer implements TimerObservable {
         });
     }
 
-    public synchronized int getSeconds()  {
+    public synchronized int getSeconds() {
         return secondsNumber;
     }
 
-    public void start(){
-        if (!timer.isAlive()){
-            timer.start();
+    public void start() {
+        if (!timerThread.isAlive()) {
+            timerThread.start();
         }
 
     }
 
-    public void stop(){
-        timer.interrupt();
+    public void stop() {
+        timerThread.interrupt();
     }
 
     @Override

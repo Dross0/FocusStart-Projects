@@ -14,6 +14,7 @@ public class GameField {
     private static final int MAX_FIELD_WIDTH = 32;
     private static final int MAX_FIELD_HEIGHT = 32;
 
+    private final Random random;
     private final List<Cell> field;
     private final int width;
     private final int height;
@@ -26,6 +27,7 @@ public class GameField {
         field = new ArrayList<>(width * height);
         fillField();
         bombs = new ArrayList<>(bombsNumber);
+        random = new Random();
         generateBombs(bombsNumber);
         countNearBombsForAllCells();
     }
@@ -106,7 +108,6 @@ public class GameField {
     }
 
     private void generateBombs(int bombsNumber) {
-        Random random = new Random();
         int bombCount = 0;
         while (bombCount < bombsNumber){
             Cell randomCell = getCell(random.nextInt(width), random.nextInt(height));

@@ -39,6 +39,6 @@ public class PlayerRecord implements Serializable, Comparable<PlayerRecord>{
 
     @Override
     public int compareTo(@NotNull PlayerRecord record) {
-        return score - record.score;
+        return Integer.compare(score, record.score);
     }
 }

@@ -6,7 +6,9 @@ import org.slf4j.LoggerFactory;
 import ru.gaidamaka.exception.GameFieldException;
 import ru.gaidamaka.exception.HighScoreTableManagerException;
 import ru.gaidamaka.game.Game;
+import ru.gaidamaka.game.GameStatus;
 import ru.gaidamaka.game.event.GameEvent;
+import ru.gaidamaka.game.event.GameEventType;
 import ru.gaidamaka.highscoretable.HighScoreTableManager;
 import ru.gaidamaka.highscoretable.PlayerRecord;
 import ru.gaidamaka.timer.Timer;
@@ -139,24 +141,23 @@ public class MinesweeperPresenter implements Presenter {
     }
 
     private void showResultWindow(GameEvent gameEvent) {
-        switch (gameEvent.getCurrentGameStatus()) {
-            case WIN:
-                if (gameEvent.isNewHighScore()) {
-                    String playerName = view.readPlayerName();
-                    highScoreTableManager
-                            .getOrCreateTable()
-                            .addNewRecord(new PlayerRecord(playerName, gameEvent.getScore()));
-                }
-                view.showWinScreen();
-                try {
-                    highScoreTableManager.save();
-                } catch (HighScoreTableManagerException e) {
-                    logger.warn("Cant save high score table", e);
-                }
-                break;
-            case LOSE:
-                view.showLoseScreen();
-                break;
+        final GameStatus currentGameStatus = gameEvent.getCurrentGameStatus();
+        if (currentGameStatus == GameStatus.WIN) {
+            if (gameEvent.isNewHighScore()) {
+                String playerName = view.readPlayerName();
+                highScoreTableManager
+                        .getOrCreateTable()
+                        .addNewRecord(new PlayerRecord(playerName, gameEvent.getScore())
+                        );
+            }
+            view.showWinScreen();
+            try {
+                highScoreTableManager.save();
+            } catch (HighScoreTableManagerException e) {
+                logger.warn("Cant save high score table", e);
+            }
+        } else if (currentGameStatus == GameStatus.LOSE) {
+            view.showLoseScreen();
         }
     }
 
@@ -164,13 +165,11 @@ public class MinesweeperPresenter implements Presenter {
     @Override
     public void update(@NotNull GameEvent gameEvent) {
         Objects.requireNonNull(gameEvent, "Game event cant be null");
-        switch (gameEvent.getEventType()){
-            case START_GAME:
-                timer.start();
-                break;
-            case FINISH_GAME:
-                showResultWindow(gameEvent);
-                break;
+        final GameEventType eventType = gameEvent.getEventType();
+        if (eventType == GameEventType.START_GAME) {
+            timer.start();
+        } else if (eventType == GameEventType.FINISH_GAME) {
+            showResultWindow(gameEvent);
         }
         gameEvent.getUpdatedCells().forEach(view::drawCell);
 

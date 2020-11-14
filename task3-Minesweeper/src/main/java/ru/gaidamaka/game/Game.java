@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import ru.gaidamaka.GameObservable;
 import ru.gaidamaka.GameObserver;
 import ru.gaidamaka.game.cell.Cell;
+import ru.gaidamaka.game.cell.CellType;
 import ru.gaidamaka.game.event.GameEvent;
 import ru.gaidamaka.game.event.GameEventType;
 import ru.gaidamaka.highscoretable.HighScoreTable;
@@ -65,14 +66,12 @@ public class Game implements Runnable, GameObservable {
         cell.show();
         closedCellsNumber--;
         updatedCells.add(cell);
-        switch (cell.getType()) {
-            case BOMB:
-                lose();
-                break;
-            case EMPTY:
-                List<Cell> nearCells = gameField.getNearCells(x, y);
-                nearCells.forEach(nearCell -> showCellWithoutNotify(nearCell.getX(), nearCell.getY()));
-                break;
+        CellType cellType = cell.getType();
+        if (cellType == CellType.BOMB) {
+            lose();
+        } else if (cellType == CellType.EMPTY) {
+            List<Cell> nearCells = gameField.getNearCells(x, y);
+            nearCells.forEach(nearCell -> showCellWithoutNotify(nearCell.getX(), nearCell.getY()));
         }
     }
 
@@ -175,7 +174,7 @@ public class Game implements Runnable, GameObservable {
     @Override
     public void removeObserver(@NotNull GameObserver gameObserver) {
         Objects.requireNonNull(gameObserver, "Game observer cant be null");
-        observers.add(gameObserver);
+        observers.remove(gameObserver);
     }
 
     private boolean isNewHighScore() {

@@ -69,7 +69,7 @@ public class HighScoreTable implements Serializable, Iterable<PlayerRecord> {
             recordList.remove(lowestRecord);
         }
         thisPrevPlayerRecord.ifPresentOrElse(
-                (prevRecord) -> updateRecord(prevRecord, record),
+                prevRecord -> updateRecord(prevRecord, record),
                 () -> recordList.add(record)
         );
         recordList.sort((o1, o2) -> tableOrder == HighScoreOrder.MIN
