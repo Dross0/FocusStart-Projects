@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 public class Body implements Detail {
-    private final UUID uuid;
+    private final @NotNull UUID uuid;
 
     public Body() {
         uuid = UUID.randomUUID();
@@ -19,7 +19,7 @@ public class Body implements Detail {
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("id", uuid)
                 .toString();

@@ -1,5 +1,6 @@
 package ru.gaidamaka.carfactory;
 
+import org.jetbrains.annotations.NotNull;
 import ru.gaidamaka.car.Car;
 import ru.gaidamaka.consumer.CarConsumer;
 import ru.gaidamaka.producer.CarProducer;
@@ -9,9 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CarFactory {
-    private final Storage<Car> storage;
-    private final List<Thread> carProducers;
-    private final List<Thread> carConsumers;
+    private final @NotNull Storage<Car> storage;
+    private final @NotNull List<Thread> carProducers;
+    private final @NotNull List<Thread> carConsumers;
 
     public CarFactory(int storageCapacity) {
         this.storage = new Storage<>(storageCapacity);

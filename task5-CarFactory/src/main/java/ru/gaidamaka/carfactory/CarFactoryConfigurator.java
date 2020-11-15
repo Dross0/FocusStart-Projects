@@ -26,24 +26,24 @@ public class CarFactoryConfigurator {
 
     public CarFactoryConfigurator(@NotNull Properties properties) {
         Objects.requireNonNull(properties, "Properties cant be null");
-        this.consumersNumber = getIntegerProperty(properties, "consumersNumber")
+        this.consumersNumber = getIntegerProperty(properties, "consumers.number")
                 .orElseThrow(() -> new CarFactoryConfiguratorException("Consumers number is unavailable"));
         validateParameter("Consumers number", consumersNumber, MIN_CONSUMERS_NUMBER, MAX_CONSUMERS_NUMBER);
-        this.producersNumber = getIntegerProperty(properties, "producersNumber")
+        this.producersNumber = getIntegerProperty(properties, "producers.number")
                 .orElseThrow(() -> new CarFactoryConfiguratorException("Producers number is unavailable"));
         validateParameter("Producers number", producersNumber, MIN_PRODUCERS_NUMBER, MAX_PRODUCERS_NUMBER);
-        this.storageCapacity = getIntegerProperty(properties, "storageCapacity")
+        this.storageCapacity = getIntegerProperty(properties, "storage.capacity")
                 .orElseThrow(() -> new CarFactoryConfiguratorException("Storage capacity is unavailable"));
         validateParameter("Storage capacity", storageCapacity, MIN_STORAGE_CAPACITY);
-        this.takingPeriodMS = getIntegerProperty(properties, "takingPeriod")
+        this.takingPeriodMS = getIntegerProperty(properties, "taking.period")
                 .orElse(DEFAULT_TAKING_PERIOD_MS);
         validateParameter("Taking period", takingPeriodMS, MIN_TAKING_PERIOD);
-        this.productionPeriodMS = getIntegerProperty(properties, "productionPeriod")
+        this.productionPeriodMS = getIntegerProperty(properties, "production.period")
                 .orElse(DEFAULT_PRODUCTION_PERIOD_MS);
         validateParameter("Production period", productionPeriodMS, MIN_PRODUCTION_PERIOD);
     }
 
-    public CarFactory createFactory() {
+    public @NotNull CarFactory createFactory() {
         CarFactory carFactory = new CarFactory(storageCapacity);
         for (int producerID = 0; producerID < producersNumber; producerID++) {
             carFactory.addProducer(producerID, productionPeriodMS);
@@ -54,7 +54,7 @@ public class CarFactoryConfigurator {
         return carFactory;
     }
 
-    private OptionalInt getIntegerProperty(Properties properties, String key) {
+    private OptionalInt getIntegerProperty(@NotNull Properties properties, String key) {
         try {
             return OptionalInt.of(Integer.parseInt(properties.getProperty(key)));
         } catch (NumberFormatException e) {

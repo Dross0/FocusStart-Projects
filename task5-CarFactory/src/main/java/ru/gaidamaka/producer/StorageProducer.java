@@ -2,13 +2,14 @@ package ru.gaidamaka.producer;
 
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.gaidamaka.storage.Storage;
 
 import java.util.Objects;
 import java.util.Optional;
 
 public abstract class StorageProducer<T> implements Runnable {
-    private T lastProducedThing;
+    private @Nullable T lastProducedThing;
     private final long productionPeriod;
     private final Storage<T> storage;
 

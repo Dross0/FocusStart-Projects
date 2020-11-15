@@ -1,6 +1,8 @@
 package ru.gaidamaka.car;
 
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Objects;
 import java.util.UUID;
 
@@ -8,7 +10,7 @@ import java.util.UUID;
 public class Car {
     private final Engine engine;
     private final Body body;
-    private final UUID uuid;
+    private final @NotNull UUID uuid;
 
     public Car(Engine engine, Body body) {
         this.engine = Objects.requireNonNull(engine, "Engine cant be null");
@@ -17,20 +19,20 @@ public class Car {
 
     }
 
-    public UUID getEngineId() {
+    public @NotNull UUID getEngineId() {
         return engine.getID();
     }
 
-    public UUID getBodyId() {
+    public @NotNull UUID getBodyId() {
         return body.getID();
     }
 
-    public UUID getId() {
+    public @NotNull UUID getId() {
         return uuid;
     }
 
     @Override
-    public String toString() {
+    public @NotNull String toString() {
         return com.google.common.base.MoreObjects.toStringHelper(this)
                 .add("engine", engine)
                 .add("body", body)
