@@ -16,7 +16,7 @@ public class Main {
     public static void main(String[] args) {
         if (args.length != ARGUMENTS_NUMBER) {
             System.out.println("Wrong arguments number, expected=" + ARGUMENTS_NUMBER + ", actual=" + args.length);
-            logger.error("Wrong arguments number, expected=" + ARGUMENTS_NUMBER + ", actual=" + args.length);
+            logger.error("Wrong arguments number, expected={}, actual={}", ARGUMENTS_NUMBER, args.length);
             return;
         }
 
@@ -26,7 +26,7 @@ public class Main {
                 Main::calculateWithTimeMeasurement,
                 () -> {
                     System.out.println("Cant parse integer from {" + args[0] + "}");
-                    logger.error("Cant parse integer from {" + args[0] + "}");
+                    logger.error("Cant parse integer from {}", args[0]);
                 }
         );
     }
