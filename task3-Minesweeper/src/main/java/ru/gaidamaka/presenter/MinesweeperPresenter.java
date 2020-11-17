@@ -178,11 +178,6 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
     }
 
     private void updateGameHighScoreTable() {
-        try {
-            highScoreTableManager.read();
-        } catch (HighScoreTableManagerException e) {
-            logger.warn("Cant read high score table, default table will be used", e);
-        }
         game.setHighScoreTable(highScoreTableManager.getOrCreateTable());
     }
 
