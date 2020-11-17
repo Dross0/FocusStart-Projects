@@ -25,11 +25,11 @@ public class Game implements Runnable, GameObservable {
     private HighScoreTable highScoreTable;
     private final List<Cell> updatedCells;
     private final List<GameObserver> observers;
-    private GameStatus gameStatus;
     private int closedCellsNumber;
     private int bombsNumber;
     private int marksNumber;
     private int score;
+    private boolean isGameRunning;
 
 
     public Game(int width, int height, int bombsNumber) {
@@ -50,7 +50,7 @@ public class Game implements Runnable, GameObservable {
         score = 0;
         closedCellsNumber = width * height;
         updatedCells.clear();
-        gameStatus = GameStatus.STOPPED;
+        isGameRunning = false;
     }
 
     public void setHighScoreTable(@NotNull HighScoreTable highScoreTable) {
@@ -80,7 +80,7 @@ public class Game implements Runnable, GameObservable {
     }
 
     public void showCell(int x, int y){
-        if (gameStatus != GameStatus.PLAYING){
+        if (!isGameRunning) {
             return;
         }
         showCellWithoutNotify(x, y);
@@ -90,7 +90,7 @@ public class Game implements Runnable, GameObservable {
 
     public void showNeighborsOfOpenCell(int x, int y){
         Cell cell = gameField.getCell(x, y);
-        if (gameStatus != GameStatus.PLAYING || cell.isHidden()){
+        if (!isGameRunning || cell.isHidden()) {
             return;
         }
         List<Cell> nearCells = gameField.getNearCells(x, y);
@@ -109,7 +109,7 @@ public class Game implements Runnable, GameObservable {
     }
 
     public void toggleMarkCell(int x, int y){
-        if (gameStatus != GameStatus.PLAYING){
+        if (!isGameRunning) {
             return;
         }
         Cell cell = gameField.getCell(x, y);
@@ -135,7 +135,7 @@ public class Game implements Runnable, GameObservable {
 
     @Override
     public void run() {
-        gameStatus = GameStatus.PLAYING;
+        isGameRunning = true;
         for (int row = 0; row < gameField.getHeight(); row++) {
             for (int col = 0; col < gameField.getWidth(); col++) {
                 updatedCells.add(gameField.getCell(col, row));
@@ -146,19 +146,19 @@ public class Game implements Runnable, GameObservable {
     }
 
     private void lose() {
-        gameStatus = GameStatus.LOSE;
-        notifyObservers(createGameEvent(GameEventType.FINISH_GAME));
+        isGameRunning = false;
+        notifyObservers(createGameEvent(GameEventType.LOSE));
     }
 
     private void checkWin() {
-        if (gameStatus == GameStatus.PLAYING && closedCellsNumber == bombsNumber) {
+        if (isGameRunning && closedCellsNumber == bombsNumber) {
             win();
         }
     }
 
     private void win() {
-        gameStatus = GameStatus.WIN;
-        notifyObservers(createGameEvent(GameEventType.FINISH_GAME));
+        isGameRunning = false;
+        notifyObservers(createGameEvent(GameEventType.WIN));
     }
 
     @Override
@@ -185,12 +185,11 @@ public class Game implements Runnable, GameObservable {
         updatedCells.clear();
         GameEvent gameEvent = new GameEvent(
                 updatedCellsCopy,
-                gameStatus,
                 eventType,
                 gameField.getCurrentBombsNumberWithoutMarkedCells(),
                 score
         );
-        if (gameStatus == GameStatus.WIN && isNewHighScore()) {
+        if (eventType == GameEventType.WIN && isNewHighScore()) {
             gameEvent.newHighScore();
         }
         return gameEvent;
@@ -203,6 +202,6 @@ public class Game implements Runnable, GameObservable {
     }
 
     public void exit() {
-        gameStatus = GameStatus.STOPPED;
+        isGameRunning = false;
     }
 }

@@ -7,7 +7,6 @@ import ru.gaidamaka.GameObserver;
 import ru.gaidamaka.exception.GameFieldException;
 import ru.gaidamaka.exception.HighScoreTableManagerException;
 import ru.gaidamaka.game.Game;
-import ru.gaidamaka.game.GameStatus;
 import ru.gaidamaka.game.event.GameEvent;
 import ru.gaidamaka.game.event.GameEventType;
 import ru.gaidamaka.highscoretable.HighScoreTableManager;
@@ -143,8 +142,7 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
     }
 
     private void showResultWindow(GameEvent gameEvent) {
-        final GameStatus currentGameStatus = gameEvent.getCurrentGameStatus();
-        if (currentGameStatus == GameStatus.WIN) {
+        if (gameEvent.getEventType() == GameEventType.WIN) {
             if (gameEvent.isNewHighScore()) {
                 String playerName = view.readPlayerName();
                 highScoreTableManager
@@ -158,7 +156,7 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
             } catch (HighScoreTableManagerException e) {
                 logger.warn("Cant save high score table", e);
             }
-        } else if (currentGameStatus == GameStatus.LOSE) {
+        } else if (gameEvent.getEventType() == GameEventType.LOSE) {
             view.showLoseScreen();
         }
     }
@@ -170,7 +168,7 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
         final GameEventType eventType = gameEvent.getEventType();
         if (eventType == GameEventType.START_GAME) {
             timer.start();
-        } else if (eventType == GameEventType.FINISH_GAME) {
+        } else if (eventType == GameEventType.WIN || eventType == GameEventType.LOSE) {
             showResultWindow(gameEvent);
         }
         currentBombsNumberWithoutMarkedCells = gameEvent.getCurrentBombsNumberWithoutMarkedCells();
