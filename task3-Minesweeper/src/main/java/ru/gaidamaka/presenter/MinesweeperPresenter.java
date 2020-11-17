@@ -35,6 +35,7 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
     private boolean isAllFieldClose = true;
     private InputStream aboutGameInputStream = null;
     private String aboutGameText = null;
+    private int currentBombsNumberWithoutMarkedCells;
 
     public MinesweeperPresenter(@NotNull Game game,
                                 @NotNull View view,
@@ -67,7 +68,6 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
             case FLAG_SET:
                 FlagSetEvent flagSetEvent = (FlagSetEvent) event;
                 game.toggleMarkCell(flagSetEvent.getX(), flagSetEvent.getY());
-                view.updateScoreBoard(secondsAfterStartGame, game.getCurrentBombsNumberWithoutMarkedCells());
                 break;
             case SHOW_CELL:
                 if (isAllFieldClose) {
@@ -102,19 +102,19 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
     }
 
     private Optional<String> readAboutText() {
-        if (aboutGameText != null) {
-            return Optional.of(aboutGameText);
-        }
         if (aboutGameInputStream == null) {
             return Optional.empty();
         }
-        Scanner scanner = new Scanner(aboutGameInputStream, StandardCharsets.UTF_8);
-        StringBuilder aboutGameSB = new StringBuilder();
-        while (scanner.hasNextLine()) {
-            aboutGameSB.append(scanner.nextLine()).append('\n');
+        if (aboutGameText == null) {
+            Scanner scanner = new Scanner(aboutGameInputStream, StandardCharsets.UTF_8);
+            StringBuilder aboutGameSB = new StringBuilder();
+            while (scanner.hasNextLine()) {
+                aboutGameSB.append(scanner.nextLine()).append('\n');
 
+            }
+            scanner.close();
+            aboutGameText = aboutGameSB.toString();
         }
-        aboutGameText = aboutGameSB.toString();
         return Optional.of(aboutGameText);
     }
 
@@ -126,7 +126,7 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
                     bombsNumber
             );
             secondsAfterStartGame = 0;
-            view.updateScoreBoard(secondsAfterStartGame, game.getCurrentBombsNumberWithoutMarkedCells());
+            view.updateScoreBoard(secondsAfterStartGame, bombsNumber);
         } catch (GameFieldException e) {
             logger.error("Wrong field parameters", e);
             view.showErrorMessage("Недопустимые параметры поля");
@@ -173,6 +173,8 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
         } else if (eventType == GameEventType.FINISH_GAME) {
             showResultWindow(gameEvent);
         }
+        currentBombsNumberWithoutMarkedCells = gameEvent.getCurrentBombsNumberWithoutMarkedCells();
+        view.updateScoreBoard(gameEvent.getScore(), currentBombsNumberWithoutMarkedCells);
         gameEvent.getUpdatedCells().forEach(view::drawCell);
 
     }
@@ -185,7 +187,7 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
     public void updateTimer() {
         secondsAfterStartGame++;
         if (!isAllFieldClose) {
-            view.updateScoreBoard(secondsAfterStartGame, game.getCurrentBombsNumberWithoutMarkedCells());
+            view.updateScoreBoard(secondsAfterStartGame, currentBombsNumberWithoutMarkedCells);
             game.setCurrentScore(secondsAfterStartGame);
         }
     }

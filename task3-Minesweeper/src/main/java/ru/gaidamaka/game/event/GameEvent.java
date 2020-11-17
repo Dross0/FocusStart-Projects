@@ -12,16 +12,19 @@ public class GameEvent {
     private final GameStatus currentStatus;
     private final GameEventType eventType;
     private final int score;
+    private final int currentBombsNumberWithoutMarkedCells;
     private boolean newHighScore;
 
     public GameEvent(@NotNull List<Cell> updatedCells,
                      @NotNull GameStatus currentStatus,
                      @NotNull GameEventType eventType,
+                     int currentBombsNumberWithoutMarkedCells,
                      int score) {
         this.updatedCells = Objects.requireNonNull(updatedCells, "Updated cells list cant be null");
         this.currentStatus = Objects.requireNonNull(currentStatus, "Game status cant be null");
         this.eventType = Objects.requireNonNull(eventType, "Event type cant be null");
         this.score = score;
+        this.currentBombsNumberWithoutMarkedCells = currentBombsNumberWithoutMarkedCells;
         this.newHighScore = false;
     }
 
@@ -50,5 +53,9 @@ public class GameEvent {
     @NotNull
     public GameStatus getCurrentGameStatus() {
         return currentStatus;
+    }
+
+    public int getCurrentBombsNumberWithoutMarkedCells() {
+        return currentBombsNumberWithoutMarkedCells;
     }
 }

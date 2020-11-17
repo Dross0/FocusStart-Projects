@@ -108,10 +108,6 @@ public class Game implements Runnable, GameObservable {
         checkWin();
     }
 
-    public int getCurrentBombsNumberWithoutMarkedCells(){
-        return gameField.getCurrentBombsNumberWithoutMarkedCells();
-    }
-
     public void toggleMarkCell(int x, int y){
         if (gameStatus != GameStatus.PLAYING){
             return;
@@ -182,9 +178,18 @@ public class Game implements Runnable, GameObservable {
     }
 
     private GameEvent createGameEvent(GameEventType eventType) {
-        final List<Cell> updatedCellsCopy = new ArrayList<>(updatedCells);
+        final List<Cell> updatedCellsCopy = new ArrayList<>();
+        updatedCells.forEach(
+                cell -> updatedCellsCopy.add(new Cell(cell))
+        );
         updatedCells.clear();
-        GameEvent gameEvent = new GameEvent(updatedCellsCopy, gameStatus, eventType, score);
+        GameEvent gameEvent = new GameEvent(
+                updatedCellsCopy,
+                gameStatus,
+                eventType,
+                gameField.getCurrentBombsNumberWithoutMarkedCells(),
+                score
+        );
         if (gameStatus == GameStatus.WIN && isNewHighScore()) {
             gameEvent.newHighScore();
         }
