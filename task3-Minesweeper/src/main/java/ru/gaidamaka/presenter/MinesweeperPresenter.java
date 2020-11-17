@@ -3,6 +3,7 @@ package ru.gaidamaka.presenter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.gaidamaka.GameObserver;
 import ru.gaidamaka.exception.GameFieldException;
 import ru.gaidamaka.exception.HighScoreTableManagerException;
 import ru.gaidamaka.game.Game;
@@ -12,6 +13,7 @@ import ru.gaidamaka.game.event.GameEventType;
 import ru.gaidamaka.highscoretable.HighScoreTableManager;
 import ru.gaidamaka.highscoretable.PlayerRecord;
 import ru.gaidamaka.timer.Timer;
+import ru.gaidamaka.timer.TimerObserver;
 import ru.gaidamaka.ui.View;
 import ru.gaidamaka.userevent.*;
 
@@ -21,7 +23,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
 
-public class MinesweeperPresenter implements Presenter {
+public class MinesweeperPresenter implements Presenter, GameObserver, TimerObserver {
     private static final Logger logger = LoggerFactory.getLogger(MinesweeperPresenter.class);
     private static final String DEFAULT_ABOUT_TEXT = "Игра сапер";
 

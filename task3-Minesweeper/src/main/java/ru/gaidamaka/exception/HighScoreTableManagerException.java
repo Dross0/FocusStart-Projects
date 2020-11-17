@@ -1,15 +1,15 @@
 package ru.gaidamaka.exception;
 
-public class HighScoreTableManagerException extends Exception{
-    public HighScoreTableManagerException(String errorMessage){
+public class HighScoreTableManagerException extends RuntimeException {
+    public HighScoreTableManagerException(String errorMessage) {
         super(errorMessage);
     }
 
-    public HighScoreTableManagerException(String errorMessage, Throwable cause){
+    public HighScoreTableManagerException(String errorMessage, Throwable cause) {
         super(errorMessage, cause);
     }
 
-    public HighScoreTableManagerException(Throwable cause){
+    public HighScoreTableManagerException(Throwable cause) {
         super(cause);
     }
 }
