@@ -3,23 +3,35 @@ package ru.gaidamaka.highscoretable;
 import org.jetbrains.annotations.NotNull;
 
 public enum HighScoreOrder {
-    MIN,
-    MAX;
+    MIN {
+        @Override
+        public int compareRecords(@NotNull PlayerRecord record1, @NotNull PlayerRecord record2) {
+            return record1.compareTo(record2);
+        }
+
+        @Override
+        public @NotNull PlayerRecord getHigherScoreRecord(@NotNull PlayerRecord record1, @NotNull PlayerRecord record2) {
+            return (record1.compareTo(record2) < 0)
+                    ? record1 :
+                    record2;
+        }
+    },
+    MAX {
+        @Override
+        public int compareRecords(@NotNull PlayerRecord record1, @NotNull PlayerRecord record2) {
+            return record2.compareTo(record1);
+        }
+
+        @Override
+        public @NotNull PlayerRecord getHigherScoreRecord(@NotNull PlayerRecord record1, @NotNull PlayerRecord record2) {
+            return (record1.compareTo(record2) >= 0)
+                    ? record1
+                    : record2;
+        }
+    };
+
+    public abstract int compareRecords(@NotNull PlayerRecord record1, @NotNull PlayerRecord record2);
 
     @NotNull
-    public PlayerRecord getHigherScoreRecord(@NotNull PlayerRecord record1, @NotNull PlayerRecord record2){
-        switch (this){
-            case MAX:
-                return (record1.compareTo(record2) >= 0)
-                        ? record1
-                        : record2;
-            case MIN:
-                return (record1.compareTo(record2) < 0)
-                        ? record1
-                        : record2;
-            default:
-                assert false : "Cant process this order type";
-        }
-        return record1;
-    }
+    public abstract PlayerRecord getHigherScoreRecord(@NotNull PlayerRecord record1, @NotNull PlayerRecord record2);
 }

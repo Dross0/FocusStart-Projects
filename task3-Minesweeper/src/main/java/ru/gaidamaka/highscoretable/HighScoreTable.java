@@ -65,17 +65,19 @@ public class HighScoreTable implements Serializable, Iterable<PlayerRecord> {
             return;
         }
         Optional<PlayerRecord> thisPrevPlayerRecord = getPlayerRecord(record.getPlayerName());
-        if (thisPrevPlayerRecord.isEmpty() && lowestRecord != null && recordList.size() >= capacity) {
-            recordList.remove(lowestRecord);
-        }
         thisPrevPlayerRecord.ifPresentOrElse(
                 prevRecord -> updateRecord(prevRecord, record),
-                () -> recordList.add(record)
+                () -> addNewPlayerRecord(record)
         );
-        recordList.sort((o1, o2) -> tableOrder == HighScoreOrder.MIN
-                ? o1.compareTo(o2)
-                : -o1.compareTo(o2));
+        recordList.sort(tableOrder::compareRecords);
         lowestRecord = recordList.get(recordList.size() - 1);
+    }
+
+    private void addNewPlayerRecord(PlayerRecord record) {
+        if (lowestRecord != null && recordList.size() >= capacity) {
+            recordList.remove(lowestRecord);
+        }
+        recordList.add(record);
     }
 
     @Override
