@@ -12,6 +12,8 @@ public interface View {
 
     void updateScoreBoard(int score, int flagsNumber);
 
+    void updateScoreBoard(int score);
+
     void fireEvent(@NotNull UserEvent event);
 
     void setPresenter(@NotNull Presenter presenter);

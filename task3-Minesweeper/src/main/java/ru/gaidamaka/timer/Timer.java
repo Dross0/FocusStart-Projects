@@ -7,39 +7,52 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Timer implements TimerObservable {
+
     private final List<TimerObserver> observers;
-    private int secondsNumber;
+    private final AtomicInteger secondsNumber;
     private Thread timerThread;
+    private final AtomicBoolean isPaused;
 
     public Timer() {
-        this.secondsNumber = 0;
+        this.secondsNumber = new AtomicInteger(0);
         observers = new ArrayList<>();
+        isPaused = new AtomicBoolean(true);
         timerThread = new Thread(() -> {
             Instant lastTime = Instant.now();
             while (!timerThread.isInterrupted()) {
                 Duration duration = Duration.between(lastTime, Instant.now());
                 if (duration.abs().getSeconds() >= 1) {
                     lastTime = Instant.now();
-                    synchronized (this) {
-                        secondsNumber++;
+                    if (!isPaused.get()) {
+                        secondsNumber.incrementAndGet();
+                        notifyObservers();
                     }
-                    notifyObservers();
                 }
             }
         });
     }
 
-    public synchronized int getSeconds() {
-        return secondsNumber;
+    public int getSeconds() {
+        return secondsNumber.get();
     }
 
     public void start() {
+        isPaused.getAndSet(false);
         if (!timerThread.isAlive()) {
             timerThread.start();
         }
+    }
 
+    public boolean isPaused() {
+        return isPaused.get();
+    }
+
+    public void pause() {
+        isPaused.getAndSet(true);
     }
 
     public void stop() {

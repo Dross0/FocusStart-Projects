@@ -303,7 +303,7 @@ public class MinesweeperView implements View {
         highScoreWindow.show();
     }
 
-    private String formatScore(int score){
+    private String formatScore(int score) {
         int charsAtScore = String.valueOf(score).length();
         return "0".repeat(MAX_SCORE_FIELD_CHAR_NUMBER - charsAtScore) + score;
     }
@@ -312,6 +312,11 @@ public class MinesweeperView implements View {
     public void updateScoreBoard(int score, int flagsNumber) {
         scoreLabel.setText(formatScore(score));
         flagsLabel.setText(String.valueOf(flagsNumber));
+    }
+
+    @Override
+    public void updateScoreBoard(int score) {
+        scoreLabel.setText(formatScore(score));
     }
 
     @Override

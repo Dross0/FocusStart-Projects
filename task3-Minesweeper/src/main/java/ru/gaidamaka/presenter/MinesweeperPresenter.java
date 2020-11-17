@@ -31,10 +31,8 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
     private final Timer timer;
     private final HighScoreTableManager highScoreTableManager;
     private int secondsAfterStartGame;
-    private boolean isAllFieldClose = true;
     private InputStream aboutGameInputStream = null;
     private String aboutGameText = null;
-    private int currentBombsNumberWithoutMarkedCells;
 
     public MinesweeperPresenter(@NotNull Game game,
                                 @NotNull View view,
@@ -69,9 +67,8 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
                 game.toggleMarkCell(flagSetEvent.getX(), flagSetEvent.getY());
                 break;
             case SHOW_CELL:
-                if (isAllFieldClose) {
-                    isAllFieldClose = false;
-                    secondsAfterStartGame = 0;
+                if (timer.isPaused()) {
+                    timer.start();
                 }
                 ShowCellEvent showCellEvent = (ShowCellEvent) event;
                 game.showCell(showCellEvent.getX(), showCellEvent.getY());
@@ -87,7 +84,6 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
                         newGameEvent.getFieldHeight(),
                         newGameEvent.getBombsNumber()
                 );
-                isAllFieldClose = true;
                 break;
             case SHOW_HIGH_SCORE_TABLE:
                 view.showHighScoreTable(highScoreTableManager.getOrCreateTable());
@@ -167,12 +163,12 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
         Objects.requireNonNull(gameEvent, "Game event cant be null");
         final GameEventType eventType = gameEvent.getEventType();
         if (eventType == GameEventType.START_GAME) {
-            timer.start();
+            timer.pause();
         } else if (eventType == GameEventType.WIN || eventType == GameEventType.LOSE) {
+            timer.pause();
             showResultWindow(gameEvent);
         }
-        currentBombsNumberWithoutMarkedCells = gameEvent.getCurrentBombsNumberWithoutMarkedCells();
-        view.updateScoreBoard(gameEvent.getScore(), currentBombsNumberWithoutMarkedCells);
+        view.updateScoreBoard(gameEvent.getScore(), gameEvent.getCurrentBombsNumberWithoutMarkedCells());
         gameEvent.getUpdatedCells().forEach(view::drawCell);
 
     }
@@ -184,9 +180,7 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
     @Override
     public void updateTimer() {
         secondsAfterStartGame++;
-        if (!isAllFieldClose) {
-            view.updateScoreBoard(secondsAfterStartGame, currentBombsNumberWithoutMarkedCells);
-            game.setCurrentScore(secondsAfterStartGame);
-        }
+        view.updateScoreBoard(secondsAfterStartGame);
+        game.setCurrentScore(secondsAfterStartGame);
     }
 }
