@@ -1,4 +1,6 @@
 rootProject.name = 'CFTProject'
 include 'task1'
 include 'task2'
+include 'task3-Minesweeper'
+include 'task6-Chat'
 
