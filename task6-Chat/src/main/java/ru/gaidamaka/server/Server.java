@@ -10,11 +10,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 
-public class Server implements Runnable {
+public class Server {
     private final Logger logger = LoggerFactory.getLogger(Server.class);
 
     private final int port;
     private final RequestHandlersRepository handlersRepository;
+    private Thread serverThread;
 
     public Server(int port) {
         PortValidator.validate(port);
@@ -22,17 +23,34 @@ public class Server implements Runnable {
         this.handlersRepository = new RequestHandlersRepository();
     }
 
-    @Override
-    public void run() {
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
-            logger.info("Server starting on port={}", port);
-            while (!Thread.currentThread().isInterrupted()) {
-                Socket clientSocket = serverSocket.accept();
-                logger.info("Client connected {}:{}", clientSocket.getInetAddress(), clientSocket.getPort());
-                handlersRepository.startNewClientHandle(clientSocket);
-            }
-        } catch (IOException e) {
-            logger.error("Problem with socket", e);
+    public void start() {
+        if (serverThread != null) {
+            throw new IllegalStateException("Server already started");
         }
+        serverThread = new Thread(getRunnable());
+        serverThread.start();
+    }
+
+    public void stop() {
+        if (serverThread == null) {
+            throw new IllegalStateException("Server is not started");
+        }
+        serverThread.interrupt();
+        serverThread = null;
+    }
+
+    private Runnable getRunnable() {
+        return () -> {
+            try (ServerSocket serverSocket = new ServerSocket(port)) {
+                logger.info("Server starting on port={}", port);
+                while (!Thread.currentThread().isInterrupted()) {
+                    Socket clientSocket = serverSocket.accept();
+                    logger.info("Client connected {}:{}", clientSocket.getInetAddress(), clientSocket.getPort());
+                    handlersRepository.startNewClientHandle(clientSocket);
+                }
+            } catch (IOException e) {
+                logger.error("Problem with socket", e);
+            }
+        };
     }
 }

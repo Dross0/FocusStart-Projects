@@ -2,24 +2,16 @@ package ru.gaidamaka.protocol.message;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.util.Objects;
-import java.util.UUID;
 
-public class User {
+public class User implements Serializable {
     @NotNull
     private final String name;
 
-    @NotNull
-    private final UUID id;
 
     public User(@NotNull String name) {
         this.name = Objects.requireNonNull(name, "User name cant be null");
-        this.id = UUID.randomUUID();
-    }
-
-    @NotNull
-    public UUID getId() {
-        return id;
     }
 
     public @NotNull String getName() {
@@ -30,7 +22,6 @@ public class User {
     public String toString() {
         return "User{" +
                 "name='" + name + '\'' +
-                ", id=" + id +
                 '}';
     }
 
@@ -39,12 +30,11 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id == user.id &&
-                name.equals(user.name);
+        return name.equals(user.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, id);
+        return Objects.hash(name);
     }
 }

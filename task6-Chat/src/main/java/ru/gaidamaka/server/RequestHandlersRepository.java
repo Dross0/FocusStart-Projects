@@ -24,20 +24,33 @@ public class RequestHandlersRepository implements ClientsRepository {
     public void registerUser(@NotNull User user, @NotNull ClientHandler clientHandler) {
         Objects.requireNonNull(clientHandler, "Handler cant be null");
         Objects.requireNonNull(user, "User cant be null");
+        validateRegistration(user, clientHandler);
+        unregisteredHandlers.remove(clientHandler);
+        usersList.put(user, clientHandler);
+    }
+
+    private void validateRegistration(@NotNull User user, @NotNull ClientHandler clientHandler) {
+        if (usersList.containsValue(clientHandler)) {
+            throw new IllegalArgumentException("Cant login when user already logged");
+        }
         if (!unregisteredHandlers.contains(clientHandler)) {
             throw new IllegalArgumentException("Cant register unknown handler");
         }
         if (isUserLogged(user)) {
             throw new InvalidUserNameException("User with name=" + user.getName() + " already registered");
         }
-        unregisteredHandlers.remove(clientHandler);
-        usersList.put(user, clientHandler);
     }
 
     @Override
     public void removeUser(@NotNull User user) {
         Objects.requireNonNull(user, "User cant be null");
         usersList.remove(user);
+    }
+
+    @Override
+    public void removeUnregisteredConnection(@NotNull ClientHandler clientHandler) {
+        Objects.requireNonNull(clientHandler, "Client handler cant be null");
+        unregisteredHandlers.remove(clientHandler);
     }
 
     @Override

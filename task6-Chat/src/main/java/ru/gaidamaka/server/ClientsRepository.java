@@ -11,6 +11,8 @@ public interface ClientsRepository {
 
     void removeUser(@NotNull User user);
 
+    void removeUnregisteredConnection(@NotNull ClientHandler clientHandler);
+
     @NotNull
     Collection<User> getAllUsers();
 

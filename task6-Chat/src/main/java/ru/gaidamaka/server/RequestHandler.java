@@ -3,12 +3,11 @@ package ru.gaidamaka.server;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.gaidamaka.protocol.SerializableObjectsConnection;
 import ru.gaidamaka.protocol.message.*;
 import ru.gaidamaka.server.exception.InvalidUserNameException;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -19,9 +18,8 @@ public class RequestHandler implements Runnable, ClientHandler {
 
     private final Socket socket;
     private final ClientsRepository clientsRepository;
-    private ObjectOutputStream writer;
     private User currentUser;
-
+    private SerializableObjectsConnection connection;
 
     public RequestHandler(@NotNull Socket socket, @NotNull ClientsRepository clientsRepository) {
         this.socket = Objects.requireNonNull(socket, "Socket cant be null");
@@ -34,19 +32,19 @@ public class RequestHandler implements Runnable, ClientHandler {
 
     @Override
     public void run() {
-        try (socket;
-             ObjectInputStream reader = new ObjectInputStream(socket.getInputStream())) {
-
-            this.writer = new ObjectOutputStream(socket.getOutputStream());
+        try {
+            connection = new SerializableObjectsConnection(socket);
             while (!Thread.currentThread().isInterrupted()) {
-                Message message = (Message) reader.readObject();
+                Message message = (Message) connection.readObject();
                 handleMessage(message);
-                logger.info("Get message {" + message.getContent() + "}" + " Type=" + message.getType());
+                logger.info("Get message {} Type={}", message.getContent(), message.getType());
             }
         } catch (IOException e) {
             logger.error("Error while reading", e);
+            closeUserSession();
         } catch (ClassNotFoundException e) {
             logger.error("Cant serialize message", e);
+            closeUserSession();
         }
     }
 
@@ -79,13 +77,29 @@ public class RequestHandler implements Runnable, ClientHandler {
         if (commandCode == CommandCode.LOGIN) {
             statusCode = loginUser(message);
         } else if (commandCode == CommandCode.EXIT) {
-            clientsRepository.removeUser(currentUser);
+            closeUserSession();
         } else if (commandCode == CommandCode.USER_LIST) {
             usersList = generateUserListString();
         }
         if (commandCode.isNeedResponse()) {
             sendResponse(usersList, message, statusCode);
         }
+    }
+
+    private void removeFromRepository() {
+        if (currentUser == null) {
+            clientsRepository.removeUnregisteredConnection(this);
+        } else {
+            clientsRepository.removeUser(currentUser);
+        }
+    }
+
+    private void closeUserSession() {
+        removeFromRepository();
+        if (isUserLogged()) {
+            notifyAllAboutUserDisconnect(currentUser);
+        }
+        Thread.currentThread().interrupt();
     }
 
     private void sendResponse(String content, RequestMessage requestMessage, ResponseStatusCode statusCode) {
@@ -106,18 +120,30 @@ public class RequestHandler implements Runnable, ClientHandler {
         try {
             clientsRepository.registerUser(message.getUser(), this);
             currentUser = message.getUser();
+            notifyAllAboutNewUser(currentUser);
             return ResponseStatusCode.SUCCESS;
         } catch (InvalidUserNameException e) {
-            logger.warn("User = {} already exist", message.getUser());
-            return ResponseStatusCode.FAILURE;
+            logger.warn("User = {} already exist", message.getUser(), e);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Registration problem", e);
         }
+        return ResponseStatusCode.FAILURE;
+    }
+
+    private void notifyAllAboutNewUser(User user) {
+        String content = "User " + user.getName() + " was connected";
+        handleGeneralMessage(new GeneralMessage(content, user));
+    }
+
+    private void notifyAllAboutUserDisconnect(User user) {
+        String content = "User " + user.getName() + " was disconnected";
+        handleGeneralMessage(new GeneralMessage(content, user));
     }
 
     @Override
-    public void sendMessage(@NotNull Message message) {
+    public synchronized void sendMessage(@NotNull Message message) {
         try {
-            writer.writeObject(message);
-            writer.flush();
+            connection.sendObject(message);
         } catch (IOException e) {
             logger.error("Cant send message={}", message, e);
         }

@@ -2,8 +2,7 @@ package ru.gaidamaka.protocol.message;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class GeneralMessage extends Message {
@@ -11,16 +10,16 @@ public class GeneralMessage extends Message {
     private final User sender;
 
     @NotNull
-    private final Calendar sendTime;
+    private final LocalDateTime sendTime;
 
     public GeneralMessage(@NotNull String content, @NotNull User sender) {
         super(content, MessageType.GENERAL_MESSAGE);
         this.sender = Objects.requireNonNull(sender, "Sender cant be null");
-        this.sendTime = new GregorianCalendar();
+        this.sendTime = LocalDateTime.now();
     }
 
     @NotNull
-    public Calendar getSendTime() {
+    public LocalDateTime getSendTime() {
         return sendTime;
     }
 
