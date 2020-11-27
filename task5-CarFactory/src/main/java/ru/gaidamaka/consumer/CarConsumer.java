@@ -8,7 +8,7 @@ import ru.gaidamaka.storage.Storage;
 
 import java.util.Objects;
 
-public class CarConsumer extends StorageConsumer<Car> {
+public class CarConsumer extends AbstractStorageConsumer<Car> {
     private static final Logger logger = LoggerFactory.getLogger(CarConsumer.class);
 
     private final int id;

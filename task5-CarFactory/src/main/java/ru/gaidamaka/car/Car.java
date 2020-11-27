@@ -1,42 +1,42 @@
 package ru.gaidamaka.car;
 
 
+import com.google.common.base.MoreObjects;
 import org.jetbrains.annotations.NotNull;
+import ru.gaidamaka.AbstractUniqueObject;
 
 import java.util.Objects;
 import java.util.UUID;
 
 
-public class Car {
+public class Car extends AbstractUniqueObject {
+    @NotNull
     private final Engine engine;
-    private final Body body;
-    private final @NotNull UUID uuid;
 
-    public Car(Engine engine, Body body) {
+    @NotNull
+    private final Body body;
+
+    public Car(@NotNull Engine engine, @NotNull Body body) {
         this.engine = Objects.requireNonNull(engine, "Engine cant be null");
         this.body = Objects.requireNonNull(body, "Body cant be null");
-        this.uuid = UUID.randomUUID();
-
     }
 
-    public @NotNull UUID getEngineId() {
-        return engine.getID();
+    @NotNull
+    public UUID getEngineUUID() {
+        return engine.getUUID();
     }
 
-    public @NotNull UUID getBodyId() {
-        return body.getID();
-    }
-
-    public @NotNull UUID getId() {
-        return uuid;
+    @NotNull
+    public UUID getBodyUUID() {
+        return body.getUUID();
     }
 
     @Override
-    public @NotNull String toString() {
-        return com.google.common.base.MoreObjects.toStringHelper(this)
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
                 .add("engine", engine)
                 .add("body", body)
-                .add("id", uuid)
+                .add("uuid", getUUID())
                 .toString();
     }
 }

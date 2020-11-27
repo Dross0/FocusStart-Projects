@@ -5,21 +5,23 @@ import ru.gaidamaka.storage.Storage;
 
 import java.util.Objects;
 
-public abstract class StorageConsumer<T> implements Runnable {
-    private final long takingPeriod;
+public abstract class AbstractStorageConsumer<T> implements Runnable {
+    private final long takingPeriodMs;
+
+    @NotNull
     private final Storage<T> storage;
 
-    public StorageConsumer(@NotNull Storage<T> storage, long takingPeriod) {
+    public AbstractStorageConsumer(@NotNull Storage<T> storage, long takingPeriodMs) {
         this.storage = Objects.requireNonNull(storage, "Storage cant be null");
-        this.takingPeriod = takingPeriod;
+        this.takingPeriodMs = takingPeriodMs;
     }
 
     @Override
     public void run() {
         while (!Thread.currentThread().isInterrupted()) {
             try {
+                Thread.sleep(takingPeriodMs);
                 useThing(storage.pop());
-                Thread.sleep(takingPeriod);
             } catch (InterruptedException e) {
                 return;
             }

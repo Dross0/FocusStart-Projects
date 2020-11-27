@@ -43,7 +43,8 @@ public class CarFactoryConfigurator {
         validateParameter("Production period", productionPeriodMS, MIN_PRODUCTION_PERIOD);
     }
 
-    public @NotNull CarFactory createFactory() {
+    @NotNull
+    public CarFactory createFactory() {
         CarFactory carFactory = new CarFactory(storageCapacity);
         for (int producerID = 0; producerID < producersNumber; producerID++) {
             carFactory.addProducer(producerID, productionPeriodMS);

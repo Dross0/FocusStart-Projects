@@ -8,37 +8,61 @@ import ru.gaidamaka.storage.Storage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class CarFactory {
-    private final @NotNull Storage<Car> storage;
-    private final @NotNull List<Thread> carProducers;
-    private final @NotNull List<Thread> carConsumers;
+    @NotNull
+    private final Storage<Car> storage;
 
-    public CarFactory(int storageCapacity) {
+    @NotNull
+    private final List<CarProducer> carProducers;
+
+    @NotNull
+    private final List<CarConsumer> carConsumers;
+
+    private ExecutorService producersService;
+
+    private ExecutorService consumersService;
+
+    CarFactory(int storageCapacity) {
         this.storage = new Storage<>(storageCapacity);
         this.carProducers = new ArrayList<>();
         this.carConsumers = new ArrayList<>();
     }
 
     public void addProducer(int producerID, int productionPeriodMS) {
-        Thread producerThread = new Thread(new CarProducer(storage, productionPeriodMS, producerID));
-        producerThread.setName("CarProducer-" + producerID);
-        carProducers.add(producerThread);
+        carProducers.add(new CarProducer(
+                storage,
+                productionPeriodMS,
+                producerID)
+        );
     }
 
     public void addConsumer(int consumerID, int takingPeriodMS) {
-        Thread consumerThread = new Thread(new CarConsumer(storage, takingPeriodMS, consumerID));
-        consumerThread.setName("CarConsumer-" + consumerID);
-        carConsumers.add(consumerThread);
+        carConsumers.add(new CarConsumer(
+                storage,
+                takingPeriodMS,
+                consumerID)
+        );
     }
 
     public void start() {
-        carProducers.forEach(Thread::start);
-        carConsumers.forEach(Thread::start);
+        if (isStarted()) {
+            throw new IllegalStateException("Factory already started");
+        }
+        producersService = Executors.newFixedThreadPool(carProducers.size());
+        carProducers.forEach(carProducer -> producersService.execute(carProducer));
+        consumersService = Executors.newFixedThreadPool(carConsumers.size());
+        carConsumers.forEach(carConsumer -> consumersService.execute(carConsumer));
+    }
+
+    private boolean isStarted() {
+        return producersService != null && consumersService != null;
     }
 
     public void stop() {
-        carConsumers.forEach(Thread::interrupt);
-        carProducers.forEach(Thread::interrupt);
+        producersService.shutdownNow();
+        consumersService.shutdownNow();
     }
 }

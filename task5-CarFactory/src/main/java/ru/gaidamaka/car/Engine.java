@@ -2,27 +2,14 @@ package ru.gaidamaka.car;
 
 
 import com.google.common.base.MoreObjects;
-import org.jetbrains.annotations.NotNull;
+import ru.gaidamaka.AbstractUniqueObject;
 
-import java.util.UUID;
 
-public class Engine implements Detail {
-    private final @NotNull UUID uuid;
-
-    public Engine() {
-        uuid = UUID.randomUUID();
-    }
-
+public class Engine extends AbstractUniqueObject {
     @Override
-    public @NotNull UUID getID() {
-        return uuid;
-    }
-
-
-    @Override
-    public @NotNull String toString() {
+    public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("id", uuid)
+                .add("uuid", getUUID())
                 .toString();
     }
 }

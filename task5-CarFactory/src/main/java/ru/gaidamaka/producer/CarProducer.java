@@ -8,7 +8,7 @@ import ru.gaidamaka.car.Car;
 import ru.gaidamaka.car.Engine;
 import ru.gaidamaka.storage.Storage;
 
-public class CarProducer extends StorageProducer<Car> {
+public class CarProducer extends AbstractStorageProducer<Car> {
     private static final Logger logger = LoggerFactory.getLogger(CarProducer.class);
 
     private final int id;
@@ -18,8 +18,10 @@ public class CarProducer extends StorageProducer<Car> {
         this.id = id;
     }
 
+
     @Override
-    protected @NotNull Car createThing() {
+    @NotNull
+    protected Car createThing() {
         final Car car = new Car(new Engine(), new Body());
         logger.info("Producer with id={} produce new car={}", id, car);
         return car;
