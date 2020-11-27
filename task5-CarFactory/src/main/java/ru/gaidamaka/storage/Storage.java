@@ -22,9 +22,9 @@ public class Storage<T> {
         return data.take();
     }
 
-    public void add(@NotNull T thing) {
+    public void add(@NotNull T thing) throws InterruptedException {
         Objects.requireNonNull(thing);
-        data.add(thing);
+        data.put(thing);
     }
 
     public int getCapacity() {
