@@ -3,14 +3,14 @@ package ru.gaidamaka;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.OptionalInt;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     private static final int ARGUMENTS_NUMBER = 1;
+    private static final int MAX_FUNCTION_ARGUMENT_INDEX = 0;
     private static final int THREADS_NUMBER = 10;
 
     public static void main(String[] args) {
@@ -20,13 +20,13 @@ public class Main {
             return;
         }
 
-        OptionalInt maxFuncArgument = parseInteger(args[0]);
+        OptionalInt maxFuncArgument = parseInteger(args[MAX_FUNCTION_ARGUMENT_INDEX]);
 
         maxFuncArgument.ifPresentOrElse(
                 Main::calculateWithTimeMeasurement,
                 () -> {
-                    System.out.println("Cant parse integer from {" + args[0] + "}");
-                    logger.error("Cant parse integer from {}", args[0]);
+                    System.out.println("Cant parse integer from {" + args[MAX_FUNCTION_ARGUMENT_INDEX] + "}");
+                    logger.error("Cant parse integer from {}", args[MAX_FUNCTION_ARGUMENT_INDEX]);
                 }
         );
     }
@@ -44,9 +44,10 @@ public class Main {
                     THREADS_NUMBER,
                     maxArgument
             );
-            Instant beforeCalc = Instant.now();
+            long timeBeforeNS = System.nanoTime();
             double result = calculator.calc();
-            long calcDurationMS = Duration.between(beforeCalc, Instant.now()).abs().toMillis();
+            long timeAfterNS = System.nanoTime();
+            long calcDurationMS = TimeUnit.MILLISECONDS.convert(timeAfterNS - timeBeforeNS, TimeUnit.NANOSECONDS);
             System.out.println("Calculation with "
                     + THREADS_NUMBER + " threads and max function argument = "
                     + maxArgument + " has time = "
