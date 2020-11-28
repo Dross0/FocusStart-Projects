@@ -7,7 +7,9 @@ import ru.gaidamaka.protocol.message.Message;
 public interface ChatView {
     void showMessage(@NotNull Message message);
 
-    void showConnectionResult(boolean isSuccess);
+    void showMessageAboutSuccessConnect();
+
+    void showMessageAboutFailedConnect();
 
     void exit();
 

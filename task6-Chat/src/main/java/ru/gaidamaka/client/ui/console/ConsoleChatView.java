@@ -3,121 +3,45 @@ package ru.gaidamaka.client.ui.console;
 import org.jetbrains.annotations.NotNull;
 import ru.gaidamaka.client.presenter.ClientPresenter;
 import ru.gaidamaka.client.ui.ChatView;
-import ru.gaidamaka.protocol.message.*;
+import ru.gaidamaka.protocol.message.GeneralMessage;
+import ru.gaidamaka.protocol.message.Message;
+import ru.gaidamaka.protocol.message.MessageType;
+import ru.gaidamaka.protocol.message.ResponseMessage;
 
-import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Scanner;
 
 public class ConsoleChatView implements ChatView {
-    public static final String CONNECT_COMMAND = "/CONNECT";
-    private final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM HH:mm", Locale.getDefault());
-    private ClientPresenter clientPresenter;
-    private final Thread inputCheckerThread;
+    private static final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM HH:mm", Locale.getDefault());
+
+    @NotNull
+    private final ConsoleInputChecker consoleInputChecker;
+
+    @NotNull
+    private final ConsoleMessageSender messageSender;
 
     public ConsoleChatView() {
-        inputCheckerThread = new Thread(getInputCheckRunnable());
-        startInputCheck();
-    }
-
-    @Override
-    public void setClientPresenter(@NotNull ClientPresenter clientPresenter) {
-        this.clientPresenter = clientPresenter;
-    }
-
-    private void startInputCheck() {
-        inputCheckerThread.start();
-    }
-
-    private void stopInputCheck() {
-        inputCheckerThread.interrupt();
+        messageSender = new ConsoleMessageSender(new ConsoleMessageParser());
+        consoleInputChecker = new ConsoleInputChecker(messageSender);
+        consoleInputChecker.startInputCheck();
     }
 
     @Override
     public void exit() {
         System.out.println("Chat closing...");
-        stopInputCheck();
-    }
-
-    @NotNull
-    private Runnable getInputCheckRunnable() {
-        return () -> {
-            Scanner scanner = new Scanner(System.in, StandardCharsets.UTF_8);
-            while (!Thread.currentThread().isInterrupted()) {
-                if (!scanner.hasNextLine()) {
-                    continue;
-                }
-                String rawMessage = scanner.nextLine();
-                if (clientPresenter == null) {
-                    throw new IllegalStateException("No presenter");
-                }
-                parseAndSendMessage(rawMessage);
-            }
-        };
-    }
-
-    private void parseAndSendMessage(String rawMessage) {
-        try {
-            if (isConnectMessage(rawMessage)) {
-                parseAndConnect(rawMessage);
-                return;
-            }
-            parseRequestCode(rawMessage).ifPresentOrElse(code -> {
-                        if (code == CommandCode.LOGIN) {
-                            clientPresenter.onRequestMessageEvent(code, parseUserNameFromLoginMessage(rawMessage));
-                        } else {
-                            clientPresenter.onRequestMessageEvent(code, null);
-                        }
-                    },
-                    () -> clientPresenter.onGeneralMessageEvent(rawMessage)
-            );
-        } catch (IllegalArgumentException e) {
-            System.out.println("Invalid command: " + e.getMessage());
-        }
-    }
-
-    private void parseAndConnect(String rawMessage) {
-        String[] splitConnectMessage = rawMessage.split(" ", 3);
-        try {
-            if (splitConnectMessage.length != 3) {
-                throw new IllegalArgumentException("Connect message must contain: /CONNECT ip port");
-            }
-            clientPresenter.onConnectEvent(splitConnectMessage[1].strip(),
-                    Integer.parseInt(splitConnectMessage[2].strip())
-            );
-        } catch (NumberFormatException e) {
-            System.out.println("Port must be is integer");
-        }
-    }
-
-    private boolean isConnectMessage(String rawMessage) {
-        return rawMessage.startsWith(CONNECT_COMMAND);
-    }
-
-    private String parseUserNameFromLoginMessage(String rawMessage) {
-        String[] splitCommandCode = rawMessage.split(" ", 2);
-        if (splitCommandCode.length != 2) {
-            throw new IllegalArgumentException("Login message must contain: /LOGIN userName");
-        }
-        return splitCommandCode[1].strip();
-    }
-
-    private Optional<CommandCode> parseRequestCode(String rawMessage) {
-        for (CommandCode commandCode : CommandCode.values()) {
-            if (rawMessage.startsWith("/" + commandCode)) {
-                return Optional.of(commandCode);
-            }
-        }
-        return Optional.empty();
+        consoleInputChecker.stopInputCheck();
     }
 
     @Override
     public void showError(@NotNull String errorMessage) {
         Objects.requireNonNull(errorMessage, "Error message cant be null");
         System.out.println(errorMessage);
+    }
+
+    @Override
+    public void setClientPresenter(@NotNull ClientPresenter presenter) {
+        messageSender.setClientPresenter(presenter);
     }
 
     @Override
@@ -134,12 +58,13 @@ public class ConsoleChatView implements ChatView {
     }
 
     @Override
-    public void showConnectionResult(boolean isSuccess) {
-        if (isSuccess) {
-            System.out.println("Connection success");
-        } else {
-            System.out.println("Connection failed");
-        }
+    public void showMessageAboutSuccessConnect() {
+        System.out.println("Connection success");
+    }
+
+    @Override
+    public void showMessageAboutFailedConnect() {
+        System.out.println("Connection failed");
     }
 
     private void showServerResponse(ResponseMessage message) {

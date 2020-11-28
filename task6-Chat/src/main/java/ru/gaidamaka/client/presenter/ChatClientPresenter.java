@@ -18,12 +18,12 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Objects;
 
-public class ConsolePresenter implements ClientPresenter, ClientObserver {
-    private static final Logger logger = LoggerFactory.getLogger(ConsolePresenter.class);
+public class ChatClientPresenter implements ClientPresenter, ClientObserver {
+    private static final Logger logger = LoggerFactory.getLogger(ChatClientPresenter.class);
     private final Client client;
     private final ChatView consoleView;
 
-    public ConsolePresenter(@NotNull Client client, @NotNull ChatView consoleView) {
+    public ChatClientPresenter(@NotNull Client client, @NotNull ChatView consoleView) {
         this.client = Objects.requireNonNull(client, "Client cant be null");
         this.consoleView = Objects.requireNonNull(consoleView, "View cant be null");
     }
@@ -74,16 +74,16 @@ public class ConsolePresenter implements ClientPresenter, ClientObserver {
             InetAddress address = InetAddress.getByName(host);
             client.connectToServer(address, port);
             client.start();
-            consoleView.showConnectionResult(true);
+            consoleView.showMessageAboutSuccessConnect();
         } catch (UnknownHostException e) {
             logger.error("Invalid ip={}", host, e);
             consoleView.showError("Invalid ip=" + host);
         } catch (ServerConnectionException e) {
             logger.error("Connect to server={}:{} failed", host, port, e);
-            consoleView.showConnectionResult(false);
+            consoleView.showMessageAboutFailedConnect();
         } catch (IllegalStateException e) {
             logger.warn("Client already connected", e);
-            consoleView.showConnectionResult(false);
+            consoleView.showMessageAboutFailedConnect();
         }
     }
 

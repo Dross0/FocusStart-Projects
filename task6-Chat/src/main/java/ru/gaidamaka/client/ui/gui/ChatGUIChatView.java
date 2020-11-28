@@ -12,7 +12,12 @@ public class ChatGUIChatView implements ChatView {
     }
 
     @Override
-    public void showConnectionResult(boolean isSuccess) {
+    public void showMessageAboutSuccessConnect() {
+
+    }
+
+    @Override
+    public void showMessageAboutFailedConnect() {
 
     }
 
