@@ -2,33 +2,38 @@ package ru.gaidamaka.timer;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 
 public class Timer implements TimerObservable {
+    public static final int TICK_PERIOD_MS = 1000;
 
     private final List<TimerObserver> observers;
-    private Thread timerThread;
+    private final Thread timerThread;
     private volatile boolean isPaused;
 
     public Timer() {
-        observers = new ArrayList<>();
+        observers = new CopyOnWriteArrayList<>();
         isPaused = true;
-        timerThread = new Thread(() -> {
-            Instant lastTime = Instant.now();
+        timerThread = new Thread(getTimerRunnable());
+    }
+
+    private Runnable getTimerRunnable() {
+        return () -> {
+            long lastTimeNs = System.nanoTime();
             while (!timerThread.isInterrupted()) {
-                Duration duration = Duration.between(lastTime, Instant.now());
-                if (duration.abs().getSeconds() >= 1) {
-                    lastTime = Instant.now();
+                long currentTimeNs = System.nanoTime();
+                long betweenTimeMS = TimeUnit.NANOSECONDS.toMillis(currentTimeNs - lastTimeNs);
+                if (betweenTimeMS >= TICK_PERIOD_MS) {
+                    lastTimeNs = currentTimeNs;
                     if (!isPaused) {
                         notifyObservers();
                     }
                 }
             }
-        });
+        };
     }
 
     public void start() {
@@ -47,6 +52,7 @@ public class Timer implements TimerObservable {
     }
 
     public void stop() {
+        pause();
         timerThread.interrupt();
     }
 
