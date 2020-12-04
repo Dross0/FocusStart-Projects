@@ -1,6 +1,7 @@
 package ru.gaidamaka.server;
 
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.gaidamaka.protocol.utils.PortValidator;
@@ -14,6 +15,8 @@ public class Server {
     private final Logger logger = LoggerFactory.getLogger(Server.class);
 
     private final int port;
+
+    @NotNull
     private final RequestHandlersRepository handlersRepository;
     private Thread serverThread;
 

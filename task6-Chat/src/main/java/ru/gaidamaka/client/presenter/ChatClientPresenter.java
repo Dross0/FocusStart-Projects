@@ -20,7 +20,10 @@ import java.util.Objects;
 
 public class ChatClientPresenter implements ClientPresenter, ClientObserver {
     private static final Logger logger = LoggerFactory.getLogger(ChatClientPresenter.class);
+
+    @NotNull
     private final Client client;
+    @NotNull
     private final ChatView consoleView;
 
     public ChatClientPresenter(@NotNull Client client, @NotNull ChatView consoleView) {

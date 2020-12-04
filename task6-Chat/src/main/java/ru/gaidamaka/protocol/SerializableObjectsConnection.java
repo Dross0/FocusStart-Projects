@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.util.Objects;
 
 public class SerializableObjectsConnection implements Closeable {
+    @NotNull
     private final Socket socket;
     private final ObjectOutputStream writer;
     private final ObjectInputStream reader;
@@ -17,7 +18,8 @@ public class SerializableObjectsConnection implements Closeable {
         this.reader = new ObjectInputStream(socket.getInputStream());
     }
 
-    public void sendObject(Serializable obj) throws IOException {
+    public void sendObject(@NotNull Serializable obj) throws IOException {
+        Objects.requireNonNull(obj);
         writer.writeObject(obj);
         writer.flush();
     }

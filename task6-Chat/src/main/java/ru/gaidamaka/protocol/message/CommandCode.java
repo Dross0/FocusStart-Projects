@@ -9,6 +9,7 @@ public enum CommandCode {
     USER_LIST("/usersList", true),
     LOGIN("/login", true);
 
+    @NotNull
     private final String commandStringRepresentation;
     private final boolean needResponse;
 

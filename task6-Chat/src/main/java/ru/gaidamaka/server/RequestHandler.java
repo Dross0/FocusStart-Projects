@@ -15,9 +15,13 @@ import java.util.StringJoiner;
 
 public class RequestHandler implements Runnable, ClientHandler {
     private final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
+    private final Object writeToClientLock = new Object();
 
+    @NotNull
     private final Socket socket;
+    @NotNull
     private final ClientsRepository clientsRepository;
+
     private User currentUser;
     private SerializableObjectsConnection connection;
 
@@ -141,9 +145,11 @@ public class RequestHandler implements Runnable, ClientHandler {
     }
 
     @Override
-    public synchronized void sendMessage(@NotNull Message message) {
+    public void sendMessage(@NotNull Message message) {
         try {
-            connection.sendObject(message);
+            synchronized (writeToClientLock) {
+                connection.sendObject(message);
+            }
         } catch (IOException e) {
             logger.error("Cant send message={}", message, e);
         }

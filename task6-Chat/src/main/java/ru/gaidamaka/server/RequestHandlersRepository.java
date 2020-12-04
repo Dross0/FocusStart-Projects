@@ -13,7 +13,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class RequestHandlersRepository implements ClientsRepository {
+    @NotNull
     private final Map<User, ClientHandler> usersList = new ConcurrentHashMap<>();
+    @NotNull
     private final List<ClientHandler> unregisteredHandlers = new CopyOnWriteArrayList<>();
 
     private boolean isUserLogged(@NotNull User user) {
