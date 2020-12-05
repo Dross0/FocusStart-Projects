@@ -31,7 +31,7 @@ public class CarFactory {
         this.carConsumers = new ArrayList<>();
     }
 
-    public void addProducer(int producerID, int productionPeriodMS) {
+    void addProducer(int producerID, int productionPeriodMS) {
         carProducers.add(new CarProducer(
                 storage,
                 productionPeriodMS,
@@ -39,7 +39,7 @@ public class CarFactory {
         );
     }
 
-    public void addConsumer(int consumerID, int takingPeriodMS) {
+    void addConsumer(int consumerID, int takingPeriodMS) {
         carConsumers.add(new CarConsumer(
                 storage,
                 takingPeriodMS,
