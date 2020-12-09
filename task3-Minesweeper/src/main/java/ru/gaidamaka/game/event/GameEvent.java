@@ -11,7 +11,6 @@ public class GameEvent {
     private final GameEventType eventType;
     private final int score;
     private final int currentBombsNumberWithoutMarkedCells;
-    private boolean newHighScore;
 
     public GameEvent(@NotNull List<Cell> updatedCells,
                      @NotNull GameEventType eventType,
@@ -21,15 +20,6 @@ public class GameEvent {
         this.eventType = Objects.requireNonNull(eventType, "Event type cant be null");
         this.score = score;
         this.currentBombsNumberWithoutMarkedCells = currentBombsNumberWithoutMarkedCells;
-        this.newHighScore = false;
-    }
-
-    public void newHighScore() {
-        newHighScore = true;
-    }
-
-    public boolean isNewHighScore() {
-        return newHighScore;
     }
 
     @NotNull

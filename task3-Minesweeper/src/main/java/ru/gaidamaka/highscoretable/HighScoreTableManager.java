@@ -59,7 +59,6 @@ public class HighScoreTableManager {
         try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(Files.newOutputStream(tableFilePath))) {
             objectOutputStream.writeObject(table);
             objectOutputStream.flush();
-            table = null;
         } catch (IOException e) {
             throw new HighScoreTableManagerException("Cant save table", e);
         }

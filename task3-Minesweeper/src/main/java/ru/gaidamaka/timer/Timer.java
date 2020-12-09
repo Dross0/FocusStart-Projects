@@ -6,16 +6,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
-public class Timer implements TimerObservable {
+public class Timer {
     public static final int TICK_PERIOD_MS = 1000;
 
-    private final List<TimerObserver> observers;
+    private final List<Consumer<Integer>> tickCallbacks;
     private final Thread timerThread;
     private volatile boolean isPaused;
 
     public Timer() {
-        observers = new CopyOnWriteArrayList<>();
+        tickCallbacks = new CopyOnWriteArrayList<>();
         isPaused = true;
         timerThread = new Thread(getTimerRunnable());
     }
@@ -23,13 +24,17 @@ public class Timer implements TimerObservable {
     private Runnable getTimerRunnable() {
         return () -> {
             long lastTimeNs = System.nanoTime();
+            int ticksAfterPause = 0;
             while (!timerThread.isInterrupted()) {
                 long currentTimeNs = System.nanoTime();
                 long betweenTimeMS = TimeUnit.NANOSECONDS.toMillis(currentTimeNs - lastTimeNs);
                 if (betweenTimeMS >= TICK_PERIOD_MS) {
                     lastTimeNs = currentTimeNs;
+                    ticksAfterPause++;
                     if (!isPaused) {
-                        notifyObservers();
+                        acceptAllCallbacks(ticksAfterPause);
+                    } else {
+                        ticksAfterPause = 0;
                     }
                 }
             }
@@ -56,20 +61,19 @@ public class Timer implements TimerObservable {
         timerThread.interrupt();
     }
 
-    @Override
-    public void addObserver(@NotNull TimerObserver timerObserver) {
-        Objects.requireNonNull(timerObserver, "Timer observer cant be null");
-        observers.add(timerObserver);
+    public void addTickCallback(@NotNull Consumer<Integer> tickCallback) {
+        Objects.requireNonNull(tickCallback, "Tick callback cant be null");
+        tickCallbacks.add(tickCallback);
     }
 
-    @Override
-    public void removeObserver(@NotNull TimerObserver timerObserver) {
-        Objects.requireNonNull(timerObserver, "Timer observer cant be null");
-        observers.remove(timerObserver);
+
+    public void removeObserver(@NotNull Consumer<Integer> tickCallback) {
+        Objects.requireNonNull(tickCallback, "Tick callback cant be null");
+        tickCallbacks.remove(tickCallback);
     }
 
-    @Override
-    public void notifyObservers() {
-        observers.forEach(TimerObserver::updateTimer);
+
+    private void acceptAllCallbacks(int ticks) {
+        tickCallbacks.forEach(tickConsumer -> tickConsumer.accept(ticks));
     }
 }

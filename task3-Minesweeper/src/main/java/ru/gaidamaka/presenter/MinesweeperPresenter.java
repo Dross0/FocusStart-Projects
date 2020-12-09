@@ -12,7 +12,6 @@ import ru.gaidamaka.game.event.GameEventType;
 import ru.gaidamaka.highscoretable.HighScoreTableManager;
 import ru.gaidamaka.highscoretable.PlayerRecord;
 import ru.gaidamaka.timer.Timer;
-import ru.gaidamaka.timer.TimerObserver;
 import ru.gaidamaka.ui.View;
 import ru.gaidamaka.userevent.*;
 
@@ -22,7 +21,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
 
-public class MinesweeperPresenter implements Presenter, GameObserver, TimerObserver {
+public class MinesweeperPresenter implements Presenter, GameObserver {
     private static final Logger logger = LoggerFactory.getLogger(MinesweeperPresenter.class);
     private static final String DEFAULT_ABOUT_TEXT = "Игра сапер";
 
@@ -30,7 +29,6 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
     private final Game game;
     private final Timer timer;
     private final HighScoreTableManager highScoreTableManager;
-    private int secondsAfterStartGame;
     private InputStream aboutGameInputStream = null;
     private String aboutGameText = null;
 
@@ -41,7 +39,8 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
         this.view = Objects.requireNonNull(view, "View cant be null");
         this.highScoreTableManager = Objects.requireNonNull(manager, "High score table manager cant be null");
         this.timer = new Timer();
-        timer.addObserver(this);
+        timer.addTickCallback(game::setCurrentScore);
+        timer.addTickCallback(view::updateScore);
         game.addObserver(this);
         view.setPresenter(this);
     }
@@ -63,37 +62,60 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
                 finishGame();
                 break;
             case FLAG_SET:
-                FlagSetEvent flagSetEvent = (FlagSetEvent) event;
-                game.toggleMarkCell(flagSetEvent.getX(), flagSetEvent.getY());
+                handle((FlagSetEvent) event);
                 break;
             case SHOW_CELL:
-                if (timer.isPaused()) {
-                    timer.start();
-                }
-                ShowCellEvent showCellEvent = (ShowCellEvent) event;
-                game.showCell(showCellEvent.getX(), showCellEvent.getY());
+                handle((ShowCellEvent) event);
                 break;
             case SHOW_NEAR_EMPTY_CELLS:
-                ShowNearEmptyCellsEvent nearEmptyCellsEvent = (ShowNearEmptyCellsEvent) event;
-                game.showNeighborsOfOpenCell(nearEmptyCellsEvent.getX(), nearEmptyCellsEvent.getY());
+                handle((ShowNearEmptyCellsEvent) event);
                 break;
             case NEW_GAME:
-                NewGameEvent newGameEvent = (NewGameEvent) event;
-                restartGame(
-                        newGameEvent.getFieldWidth(),
-                        newGameEvent.getFieldHeight(),
-                        newGameEvent.getBombsNumber()
-                );
+                handle((NewGameEvent) event);
                 break;
             case SHOW_HIGH_SCORE_TABLE:
-                view.showHighScoreTable(highScoreTableManager.getOrCreateTable());
+                showHighScoreTable();
                 break;
             case SHOW_ABOUT:
-                view.showAbout(readAboutText()
-                        .orElse(DEFAULT_ABOUT_TEXT)
-                );
+                showAbout();
                 break;
+            default:
+                logger.error("Unknown user event type={}", event.getType());
+                throw new IllegalArgumentException("Unknown user event type=" + event.getType());
         }
+    }
+
+    private void showAbout() {
+        view.showAbout(readAboutText()
+                .orElse(DEFAULT_ABOUT_TEXT)
+        );
+    }
+
+    private void showHighScoreTable() {
+        view.showHighScoreTable(highScoreTableManager.getOrCreateTable());
+    }
+
+    private void handle(NewGameEvent newGameEvent) {
+        restartGame(
+                newGameEvent.getFieldWidth(),
+                newGameEvent.getFieldHeight(),
+                newGameEvent.getBombsNumber()
+        );
+    }
+
+    private void handle(ShowNearEmptyCellsEvent nearEmptyCellsEvent) {
+        game.showNeighborsOfOpenCell(nearEmptyCellsEvent.getX(), nearEmptyCellsEvent.getY());
+    }
+
+    private void handle(ShowCellEvent showCellEvent) {
+        if (timer.isPaused()) {
+            timer.start();
+        }
+        game.showCell(showCellEvent.getX(), showCellEvent.getY());
+    }
+
+    private void handle(FlagSetEvent flagSetEvent) {
+        game.toggleMarkCell(flagSetEvent.getX(), flagSetEvent.getY());
     }
 
     private Optional<String> readAboutText() {
@@ -101,13 +123,12 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
             return Optional.empty();
         }
         if (aboutGameText == null) {
-            Scanner scanner = new Scanner(aboutGameInputStream, StandardCharsets.UTF_8);
             StringBuilder aboutGameSB = new StringBuilder();
-            while (scanner.hasNextLine()) {
-                aboutGameSB.append(scanner.nextLine()).append('\n');
-
+            try (Scanner scanner = new Scanner(aboutGameInputStream, StandardCharsets.UTF_8)) {
+                while (scanner.hasNextLine()) {
+                    aboutGameSB.append(scanner.nextLine()).append('\n');
+                }
             }
-            scanner.close();
             aboutGameText = aboutGameSB.toString();
         }
         return Optional.of(aboutGameText);
@@ -120,8 +141,7 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
                     fieldHeight,
                     bombsNumber
             );
-            secondsAfterStartGame = 0;
-            view.updateScoreBoard(secondsAfterStartGame, bombsNumber);
+            view.updateFlagsNumber(bombsNumber);
         } catch (GameFieldException e) {
             logger.error("Wrong field parameters", e);
             view.showErrorMessage("Недопустимые параметры поля");
@@ -132,18 +152,18 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
     }
 
     public void runGame() {
-        secondsAfterStartGame = 0;
-        updateGameHighScoreTable();
         game.run();
     }
 
     private void showResultWindow(GameEvent gameEvent) {
         if (gameEvent.getEventType() == GameEventType.WIN) {
-            if (gameEvent.isNewHighScore()) {
+            if (highScoreTableManager.getOrCreateTable().isHighScore(gameEvent.getScore())) {
                 String playerName = view.readPlayerName();
                 highScoreTableManager
                         .getOrCreateTable()
-                        .addNewRecord(new PlayerRecord(playerName, gameEvent.getScore())
+                        .addNewRecord(new PlayerRecord(
+                                playerName,
+                                gameEvent.getScore())
                         );
             }
             view.showWinScreen();
@@ -168,19 +188,7 @@ public class MinesweeperPresenter implements Presenter, GameObserver, TimerObser
             timer.pause();
             showResultWindow(gameEvent);
         }
-        view.updateScoreBoard(gameEvent.getScore(), gameEvent.getCurrentBombsNumberWithoutMarkedCells());
+        view.updateFlagsNumber(gameEvent.getCurrentBombsNumberWithoutMarkedCells());
         gameEvent.getUpdatedCells().forEach(view::drawCell);
-
-    }
-
-    private void updateGameHighScoreTable() {
-        game.setHighScoreTable(highScoreTableManager.getOrCreateTable());
-    }
-
-    @Override
-    public void updateTimer() {
-        secondsAfterStartGame++;
-        view.updateScoreBoard(secondsAfterStartGame);
-        game.setCurrentScore(secondsAfterStartGame);
     }
 }

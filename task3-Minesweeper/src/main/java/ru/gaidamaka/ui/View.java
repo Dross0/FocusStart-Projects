@@ -10,9 +10,7 @@ import ru.gaidamaka.userevent.UserEvent;
 public interface View {
     void drawCell(@NotNull Cell cell);
 
-    void updateScoreBoard(int score, int flagsNumber);
-
-    void updateScoreBoard(int score);
+    void updateFlagsNumber(int flagsNumber);
 
     void fireEvent(@NotNull UserEvent event);
 
@@ -30,4 +28,6 @@ public interface View {
     void showErrorMessage(@NotNull String errorMessage);
 
     void showAbout(@NotNull String aboutText);
+
+    void updateScore(int score);
 }

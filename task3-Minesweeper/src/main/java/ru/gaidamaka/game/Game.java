@@ -1,28 +1,20 @@
 package ru.gaidamaka.game;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import ru.gaidamaka.GameObservable;
 import ru.gaidamaka.GameObserver;
 import ru.gaidamaka.game.cell.Cell;
 import ru.gaidamaka.game.cell.CellType;
 import ru.gaidamaka.game.event.GameEvent;
 import ru.gaidamaka.game.event.GameEventType;
-import ru.gaidamaka.highscoretable.HighScoreTable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Game implements Runnable, GameObservable {
-    private static final int DEFAULT_FIELD_WIDTH = 9;
-    private static final int DEFAULT_FIELD_HEIGHT = 9;
-    private static final int DEFAULT_BOMBS_NUMBER = 10;
-
+public class Game implements GameObservable {
     private GameField gameField;
 
-    @Nullable
-    private HighScoreTable highScoreTable;
     private final List<Cell> updatedCells;
     private final List<GameObserver> observers;
     private int closedCellsNumber;
@@ -30,17 +22,13 @@ public class Game implements Runnable, GameObservable {
     private int marksNumber;
     private int score;
     private boolean isGameRunning;
+    private boolean wasLose;
 
 
     public Game(int width, int height, int bombsNumber) {
         updatedCells = new ArrayList<>();
         observers = new ArrayList<>();
-        highScoreTable = null;
         reset(width, height, bombsNumber);
-    }
-
-    public Game(){
-        this(DEFAULT_FIELD_WIDTH, DEFAULT_FIELD_HEIGHT, DEFAULT_BOMBS_NUMBER);
     }
 
     public void reset(int width, int height, int bombsNumber) {
@@ -51,11 +39,7 @@ public class Game implements Runnable, GameObservable {
         closedCellsNumber = width * height;
         updatedCells.clear();
         isGameRunning = false;
-    }
-
-    public void setHighScoreTable(@NotNull HighScoreTable highScoreTable) {
-        Objects.requireNonNull(highScoreTable, "High score table cant be null");
-        this.highScoreTable = highScoreTable;
+        wasLose = false;
     }
 
     private void showCellWithoutNotify(int x, int y) {
@@ -68,7 +52,7 @@ public class Game implements Runnable, GameObservable {
         updatedCells.add(cell);
         CellType cellType = cell.getType();
         if (cellType == CellType.BOMB) {
-            lose();
+            wasLose = true;
         } else if (cellType == CellType.EMPTY) {
             List<Cell> nearCells = gameField.getNearCells(x, y);
             nearCells.forEach(nearCell -> showCellWithoutNotify(nearCell.getX(), nearCell.getY()));
@@ -79,11 +63,15 @@ public class Game implements Runnable, GameObservable {
         this.score = score;
     }
 
-    public void showCell(int x, int y){
+    public void showCell(int x, int y) {
         if (!isGameRunning) {
             return;
         }
         showCellWithoutNotify(x, y);
+        if (wasLose) {
+            lose();
+            return;
+        }
         notifyObservers(createGameEvent(GameEventType.MOVE));
         checkWin();
     }
@@ -95,15 +83,19 @@ public class Game implements Runnable, GameObservable {
         }
         List<Cell> nearCells = gameField.getNearCells(x, y);
         int nearFlagsNumber = 0;
-        for (Cell nearCell: nearCells){
-            if (nearCell.isMarked()){
+        for (Cell nearCell : nearCells) {
+            if (nearCell.isMarked()) {
                 nearFlagsNumber++;
             }
         }
-        if (nearFlagsNumber != cell.getNearBombNumber()){
+        if (nearFlagsNumber != cell.getNearBombNumber()) {
             return;
         }
         nearCells.forEach(nearCell -> showCellWithoutNotify(nearCell.getX(), nearCell.getY()));
+        if (wasLose) {
+            lose();
+            return;
+        }
         notifyObservers(createGameEvent(GameEventType.MOVE));
         checkWin();
     }
@@ -133,7 +125,6 @@ public class Game implements Runnable, GameObservable {
         updatedCells.add(cell);
     }
 
-    @Override
     public void run() {
         isGameRunning = true;
         for (int row = 0; row < gameField.getHeight(); row++) {
@@ -173,26 +164,18 @@ public class Game implements Runnable, GameObservable {
         observers.remove(gameObserver);
     }
 
-    private boolean isNewHighScore() {
-        return highScoreTable != null && highScoreTable.isHighScore(score);
-    }
-
     private GameEvent createGameEvent(GameEventType eventType) {
         final List<Cell> updatedCellsCopy = new ArrayList<>();
         updatedCells.forEach(
                 cell -> updatedCellsCopy.add(new Cell(cell))
         );
         updatedCells.clear();
-        GameEvent gameEvent = new GameEvent(
+        return new GameEvent(
                 updatedCellsCopy,
                 eventType,
                 gameField.getCurrentBombsNumberWithoutMarkedCells(),
                 score
         );
-        if (eventType == GameEventType.WIN && isNewHighScore()) {
-            gameEvent.newHighScore();
-        }
-        return gameEvent;
     }
 
     @Override

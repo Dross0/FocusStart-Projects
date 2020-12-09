@@ -33,10 +33,12 @@ public class Cell {
     }
 
     public void setNearBombNumber(int nearBombNumber){
-        if (cellType == CellType.BOMB){
+        if (cellType == CellType.BOMB) {
             return;
         }
-        setCellType((nearBombNumber > 0) ? CellType.NEAR_BOMB : CellType.EMPTY);
+        this.cellType = (nearBombNumber > 0)
+                ? CellType.NEAR_BOMB
+                : CellType.EMPTY;
         this.nearBombNumber = nearBombNumber;
     }
 
@@ -51,7 +53,6 @@ public class Cell {
     public void hide(){
         isHiddenFlag = true;
     }
-
 
     public boolean isHidden(){
         return isHiddenFlag;
@@ -82,7 +83,7 @@ public class Cell {
         return cellType;
     }
 
-    public void setCellType(CellType cellType) {
+    public void setCellType(@NotNull CellType cellType) {
         this.cellType = cellType;
     }
 

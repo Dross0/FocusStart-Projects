@@ -114,7 +114,7 @@ public class MinesweeperView implements View {
         scoreLabel.setFont(new Font(FONT, Font.BOLD, 20));
         flagsLabel = new JLabel();
         flagsLabel.setFont(new Font(FONT, Font.BOLD, 20));
-        updateScoreBoard(0, 0);
+        resetScoreBoard();
         GridBagConstraints c = new GridBagConstraints();
         c.gridx = 0;
         c.anchor = GridBagConstraints.WEST;
@@ -238,13 +238,18 @@ public class MinesweeperView implements View {
         int fieldHeight = fieldHeightSlider.getValue();
         int bombsNumber = bombsNumberSlider.getValue();
         gameFieldView.reset(fieldWidth, fieldHeight, this::fireEvent);
-        updateScoreBoard(0, 0);
+        resetScoreBoard();
         mainWindow.pack();
         presenter.onEvent(new NewGameEvent(
                 fieldWidth,
                 fieldHeight,
                 bombsNumber
         ));
+    }
+
+    private void resetScoreBoard() {
+        updateFlagsNumber(0);
+        updateScore(0);
     }
 
     @Override
@@ -309,14 +314,14 @@ public class MinesweeperView implements View {
     }
 
     @Override
-    public void updateScoreBoard(int score, int flagsNumber) {
+    public void updateScore(int score) {
         scoreLabel.setText(formatScore(score));
-        flagsLabel.setText(String.valueOf(flagsNumber));
+
     }
 
     @Override
-    public void updateScoreBoard(int score) {
-        scoreLabel.setText(formatScore(score));
+    public void updateFlagsNumber(int flagsNumber) {
+        flagsLabel.setText(String.valueOf(flagsNumber));
     }
 
     @Override
