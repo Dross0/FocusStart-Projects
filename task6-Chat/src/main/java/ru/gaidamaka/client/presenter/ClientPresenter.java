@@ -12,4 +12,6 @@ public interface ClientPresenter {
     void onConnectEvent(@NotNull String ipStr, int port);
 
     void start();
+
+    void onRequestMessageEvent(@NotNull CommandCode code);
 }

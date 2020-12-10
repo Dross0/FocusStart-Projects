@@ -12,7 +12,7 @@ import ru.gaidamaka.client.event.NewMessageEvent;
 import ru.gaidamaka.client.exception.SendMessageException;
 import ru.gaidamaka.client.exception.ServerConnectionException;
 import ru.gaidamaka.client.ui.ChatView;
-import ru.gaidamaka.protocol.message.CommandCode;
+import ru.gaidamaka.protocol.message.*;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -24,17 +24,22 @@ public class ChatClientPresenter implements ClientPresenter, ClientObserver {
     @NotNull
     private final Client client;
     @NotNull
-    private final ChatView consoleView;
+    private final ChatView view;
 
-    public ChatClientPresenter(@NotNull Client client, @NotNull ChatView consoleView) {
+    public ChatClientPresenter(@NotNull Client client, @NotNull ChatView view) {
         this.client = Objects.requireNonNull(client, "Client cant be null");
-        this.consoleView = Objects.requireNonNull(consoleView, "View cant be null");
+        this.view = Objects.requireNonNull(view, "View cant be null");
     }
 
     @Override
     public void start() {
         client.addObserver(this);
-        consoleView.setClientPresenter(this);
+        view.setClientPresenter(this);
+    }
+
+    @Override
+    public void onRequestMessageEvent(@NotNull CommandCode code) {
+        onRequestMessageEvent(code, null);
     }
 
     @Override
@@ -43,10 +48,10 @@ public class ChatClientPresenter implements ClientPresenter, ClientObserver {
             client.sendGeneralMessage(content);
         } catch (IllegalStateException e) {
             logger.warn("Client cant send message until login", e);
-            consoleView.showError(e.getMessage());
+            view.showError(e.getMessage());
         } catch (SendMessageException e) {
             logger.error("Cant send message", e);
-            consoleView.showError(e.getMessage());
+            view.showError(e.getMessage());
         }
     }
 
@@ -61,13 +66,13 @@ public class ChatClientPresenter implements ClientPresenter, ClientObserver {
             }
         } catch (SendMessageException e) {
             logger.warn("Error while send request", e);
-            consoleView.showError(e.getMessage());
+            view.showError(e.getMessage());
         } catch (IllegalArgumentException e) {
             logger.warn("User name={} is not valid", userName, e);
-            consoleView.showError(e.getMessage());
+            view.showError(e.getMessage());
         } catch (IllegalStateException e) {
             logger.warn("User not logged", e);
-            consoleView.showError(e.getMessage());
+            view.showError(e.getMessage());
         }
     }
 
@@ -77,16 +82,16 @@ public class ChatClientPresenter implements ClientPresenter, ClientObserver {
             InetAddress address = InetAddress.getByName(host);
             client.connectToServer(address, port);
             client.start();
-            consoleView.showMessageAboutSuccessConnect();
+            view.showMessageAboutSuccessConnect();
         } catch (UnknownHostException e) {
             logger.error("Invalid ip={}", host, e);
-            consoleView.showError("Invalid ip=" + host);
+            view.showMessageAboutFailedConnect("Invalid ip=" + host);
         } catch (ServerConnectionException e) {
             logger.error("Connect to server={}:{} failed", host, port, e);
-            consoleView.showMessageAboutFailedConnect();
+            view.showMessageAboutFailedConnect(String.format("Connect to server=%s:%d failed", host, port));
         } catch (IllegalStateException e) {
             logger.warn("Client already connected", e);
-            consoleView.showMessageAboutFailedConnect();
+            view.showMessageAboutFailedConnect("Client already connected");
         }
     }
 
@@ -94,12 +99,47 @@ public class ChatClientPresenter implements ClientPresenter, ClientObserver {
     @Override
     public void update(@NotNull ClientEvent event) {
         if (event.getType() == EventType.EXIT) {
-            consoleView.exit();
+            view.exit();
         } else if (event.getType() == EventType.NEW_MESSAGE) {
             NewMessageEvent newMessageEvent = (NewMessageEvent) event;
-            consoleView.showMessage(newMessageEvent.getMessage());
+            handleReceivingNewMessage(newMessageEvent.getMessage());
         } else {
             throw new IllegalStateException("Unknown event type");
+        }
+    }
+
+    private void handleReceivingNewMessage(Message message) {
+        Objects.requireNonNull(message, "Message cant be null");
+        MessageType messageType = message.getType();
+        if (messageType == MessageType.SERVER_REQUEST) {
+            throw new IllegalStateException("Client cant work with requests");
+        } else if (messageType == MessageType.GENERAL_MESSAGE) {
+            view.showGeneralMessage((GeneralMessage) message);
+        } else if (messageType == MessageType.SERVER_RESPONSE) {
+            handleReceivingResponse((ResponseMessage) message);
+        }
+    }
+
+    private void handleReceivingResponse(ResponseMessage message) {
+        if (message.getResponseStatusCode() == ResponseStatusCode.SUCCESS) {
+            handleSuccessResponse(message);
+        } else if (message.getResponseStatusCode() == ResponseStatusCode.FAILURE) {
+            handleFailureResponse(message);
+        }
+
+    }
+
+    private void handleFailureResponse(ResponseMessage message) {
+        RequestMessage requestMessage = message.getRequestMessage();
+        if (requestMessage.getCommandCode() == CommandCode.LOGIN) {
+            view.showLoginFail(requestMessage.getUser().getName());
+        }
+    }
+
+    private void handleSuccessResponse(ResponseMessage message) {
+        RequestMessage requestMessage = message.getRequestMessage();
+        if (requestMessage.getCommandCode() == CommandCode.USER_LIST) {
+            view.showUserList(message.getContent());
         }
     }
 }

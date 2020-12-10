@@ -35,7 +35,7 @@ public class ConsoleMessageSender {
                                     parser.parseUserNameFromLoginMessage(rawMessage)
                             );
                         } else {
-                            clientPresenter.onRequestMessageEvent(code, null);
+                            clientPresenter.onRequestMessageEvent(code);
                         }
                     },
                     () -> clientPresenter.onGeneralMessageEvent(rawMessage)
