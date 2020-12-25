@@ -2,8 +2,12 @@ rootProject.name = 'CFTProject'
 include 'task1'
 include 'task2'
 <<<<<<< HEAD
+<<<<<<< HEAD
 include 'task3-Minesweeper'
 =======
 include 'task4-MultithreadComputing'
 >>>>>>> task4-MultithreadComputing
+=======
+include 'task5-CarFactory'
+>>>>>>> task5-CarFactory
 
