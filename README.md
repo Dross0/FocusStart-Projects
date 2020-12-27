@@ -1,4 +1,5 @@
 # ЦФТ FocusStart Java - осень 2020
+0. [Вступительное задание.](https://github.com/Dross0/FocusStart-Projects/tree/master/TestTask-FileMergeSort)
 1. [Таблица умножения.](https://github.com/Dross0/FocusStart-Projects/tree/master/task1)  [Условие.](https://github.com/Dross0/FocusStart-Projects/blob/master/tasks/Task%201.pdf)
 2. [Фигуры.](https://github.com/Dross0/FocusStart-Projects/tree/master/task2)  [Условие.](https://github.com/Dross0/FocusStart-Projects/blob/master/tasks/Task%202.pdf)
 3. [Сапер.](https://github.com/Dross0/FocusStart-Projects/tree/master/task3-Minesweeper)  [Условие.](https://github.com/Dross0/FocusStart-Projects/blob/master/tasks/Task%203.pdf)
